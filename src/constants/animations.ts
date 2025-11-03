@@ -15,6 +15,11 @@ export const ANIMATION_CONFIG = {
     swipeThreshold: 150,
     progressRingSize: 200,
     progressRingStrokeWidth: 8,
+    dismissAnimationDuration: 0,
+    dismissScale: {
+      mid: 0.92,
+      end: 0.85,
+    },
   },
   completion: {
     particleCount: 12,

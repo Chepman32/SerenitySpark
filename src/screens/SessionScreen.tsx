@@ -7,6 +7,8 @@ import Animated, {
   withTiming,
   Easing,
   runOnJS,
+  interpolate,
+  interpolateColor,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ProgressRing from '../components/ProgressRing';
@@ -33,8 +35,11 @@ const SessionScreen: React.FC = () => {
 
   const progress = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const dismissProgress = useSharedValue(0);
 
   useEffect(() => {
+    translateY.value = 0;
+    dismissProgress.value = 0;
     startAudio();
     let elapsedTime = 0;
 
@@ -116,10 +121,14 @@ const SessionScreen: React.FC = () => {
 
   const animateSessionDismissal = () => {
     'worklet';
+    dismissProgress.value = withTiming(1, {
+      duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
+      easing: Easing.out(Easing.cubic),
+    });
     translateY.value = withTiming(
       SCREEN_HEIGHT,
       {
-        duration: 250,
+        duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
         easing: Easing.out(Easing.cubic),
       },
       finished => {
@@ -130,22 +139,88 @@ const SessionScreen: React.FC = () => {
     );
   };
 
+  const resetDismissState = () => {
+    'worklet';
+    translateY.value = withTiming(0, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+    });
+    dismissProgress.value = withTiming(0, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+    });
+  };
+
   const panGesture = Gesture.Pan()
     .onUpdate(event => {
+      'worklet';
       if (event.translationY > 0) {
         translateY.value = event.translationY;
+        const targetProgress = Math.min(
+          Math.max(
+            event.translationY /
+              (ANIMATION_CONFIG.session.swipeThreshold * 1.6),
+            0,
+          ),
+          1,
+        );
+        dismissProgress.value = withTiming(targetProgress, {
+          duration: 120,
+          easing: Easing.out(Easing.cubic),
+        });
       }
     })
     .onEnd(event => {
+      'worklet';
       if (event.translationY > ANIMATION_CONFIG.session.swipeThreshold) {
         animateSessionDismissal();
       } else {
-        translateY.value = withTiming(0);
+        resetDismissState();
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [
+      { translateY: translateY.value },
+      {
+        scale: interpolate(
+          dismissProgress.value,
+          [0, 0.6, 1],
+          [1, ANIMATION_CONFIG.session.dismissScale.mid, ANIMATION_CONFIG.session.dismissScale.end],
+        ),
+      },
+      {
+        rotate: `${interpolate(dismissProgress.value, [0, 1], [0, -6])}deg`,
+      },
+    ],
+    opacity: interpolate(dismissProgress.value, [0, 0.8, 1], [1, 0.92, 0]),
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      dismissProgress.value,
+      [0, 0.6, 1],
+      ['rgba(10,10,15,0)', 'rgba(86, 55, 194, 0.6)', 'rgba(10,10,15,0)'],
+    ),
+    opacity: interpolate(dismissProgress.value, [0, 0.6, 1], [0, 1, 0]),
+  }));
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(dismissProgress.value, [0, 0.6, 1], [0, 0.35, 0]),
+    transform: [
+      {
+        scale: interpolate(dismissProgress.value, [0, 1], [0.3, 1.8]),
+      },
+    ],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(dismissProgress.value, [0, 0.45, 1], [0, 0.6, 0]),
+    transform: [
+      {
+        scale: interpolate(dismissProgress.value, [0, 1], [0.7, 2.2]),
+      },
+    ],
   }));
 
   const formatTime = (seconds: number): string => {
@@ -156,41 +231,58 @@ const SessionScreen: React.FC = () => {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <SafeAreaView style={styles.safeArea}>
-          <Pressable
-            style={styles.content}
-            onPress={() => setShowTimer(!showTimer)}
-          >
-            <View style={styles.progressContainer}>
-              <ProgressRing
-                progress={progress}
-                size={ANIMATION_CONFIG.session.progressRingSize}
-                strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
-                color={theme.colors.primary}
+      <View style={styles.root}>
+        <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="none" />
+        <Animated.View style={[styles.container, animatedStyle]}>
+          <SafeAreaView style={styles.safeArea}>
+            <Pressable
+              style={styles.content}
+              onPress={() => setShowTimer(!showTimer)}
+            >
+              <Animated.View
+                style={[styles.pulse, pulseStyle]}
+                pointerEvents="none"
               />
-              {showTimer && (
-                <Text style={styles.timerText}>
-                  {formatTime(timeRemaining)}
-                </Text>
-              )}
-            </View>
+              <Animated.View
+                style={[styles.glow, glowStyle]}
+                pointerEvents="none"
+              />
+              <View style={styles.progressContainer}>
+                <ProgressRing
+                  progress={progress}
+                  size={ANIMATION_CONFIG.session.progressRingSize}
+                  strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
+                  color={theme.colors.primary}
+                />
+                {showTimer && (
+                  <Text style={styles.timerText}>
+                    {formatTime(timeRemaining)}
+                  </Text>
+                )}
+              </View>
 
-            <Text style={styles.hint}>Swipe down to end</Text>
-          </Pressable>
-        </SafeAreaView>
-        {showCompletion && (
-          <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
-        )}
-      </Animated.View>
+              <Text style={styles.hint}>Swipe down to end</Text>
+            </Pressable>
+          </SafeAreaView>
+          {showCompletion && (
+            <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
+          )}
+        </Animated.View>
+      </View>
     </GestureDetector>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   safeArea: {
     flex: 1,
@@ -199,6 +291,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  pulse: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    top: '50%',
+    left: '50%',
+    marginLeft: -130,
+    marginTop: -130,
+    borderRadius: 130,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  glow: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    top: '50%',
+    left: '50%',
+    marginLeft: -160,
+    marginTop: -160,
+    borderRadius: 160,
+    backgroundColor: 'rgba(255, 215, 128, 0.25)',
   },
   progressContainer: {
     justifyContent: 'center',

@@ -72,11 +72,6 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
           />
         ))}
       </Animated.ScrollView>
-      <View style={styles.indicators}>
-        {DURATION_OPTIONS.map((_, index) => (
-          <View key={index} style={styles.indicator} />
-        ))}
-      </View>
     </View>
   );
 };
@@ -158,19 +153,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: theme.colors.text,
     marginTop: 4,
-  },
-  indicators: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.textSecondary,
-    marginHorizontal: 4,
   },
 });
 

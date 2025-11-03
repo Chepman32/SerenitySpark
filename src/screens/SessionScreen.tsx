@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import ProgressRing from '../components/ProgressRing';
@@ -19,7 +20,7 @@ import AudioService from '../services/AudioService';
 
 const SessionScreen: React.FC = () => {
   const { navigateToHome } = useApp();
-  const { sessionState, endSession, updateElapsed } = useSession();
+  const { sessionState, endSession } = useSession();
   const { addSession } = useHistory();
 
   const [timeRemaining, setTimeRemaining] = useState(
@@ -34,6 +35,8 @@ const SessionScreen: React.FC = () => {
 
   useEffect(() => {
     startAudio();
+    let elapsedTime = 0;
+
     const interval = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
@@ -41,14 +44,22 @@ const SessionScreen: React.FC = () => {
           return 0;
         }
         const newTime = prev - 1;
-        const elapsed = sessionState.duration * 60 - newTime;
-        updateElapsed(elapsed);
-        progress.value = withTiming(elapsed / (sessionState.duration * 60), {
-          duration: 1000,
-          easing: Easing.linear,
-        });
+        elapsedTime = sessionState.duration * 60 - newTime;
+
+        // Update progress animation
+        progress.value = withTiming(
+          elapsedTime / (sessionState.duration * 60),
+          {
+            duration: 1000,
+            easing: Easing.linear,
+          },
+        );
+
         return newTime;
       });
+
+      // Elapsed time is tracked locally in this component
+      // No need to update context during active session
     }, 1000);
 
     return () => {
@@ -94,6 +105,12 @@ const SessionScreen: React.FC = () => {
     navigateToHome();
   };
 
+  const handleEndSession = async () => {
+    await stopAudio();
+    endSession();
+    navigateToHome();
+  };
+
   const panGesture = Gesture.Pan()
     .onUpdate(event => {
       if (event.translationY > 0) {
@@ -103,18 +120,12 @@ const SessionScreen: React.FC = () => {
     })
     .onEnd(event => {
       if (event.translationY > 150) {
-        handleEndSession();
+        runOnJS(handleEndSession)();
       } else {
         translateY.value = withTiming(0);
         opacity.value = withTiming(1);
       }
     });
-
-  const handleEndSession = async () => {
-    await stopAudio();
-    endSession();
-    navigateToHome();
-  };
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],

@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   withSpring,
+  runOnJS,
 } from 'react-native-reanimated';
 import {
   DURATION_OPTIONS,
@@ -43,7 +44,7 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
       );
       const duration = DURATION_OPTIONS[index]?.minutes;
       if (duration) {
-        onDurationSelect(duration);
+        runOnJS(onDurationSelect)(duration);
       }
     },
   });

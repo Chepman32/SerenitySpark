@@ -6,6 +6,11 @@ export interface DurationOption {
 
 export const DURATION_OPTIONS: DurationOption[] = [
   {
+    minutes: 1,
+    icon: 'clock-outline',
+    color: '#4ECDC4',
+  },
+  {
     minutes: 5,
     icon: 'clock-outline',
     color: '#4ECDC4',

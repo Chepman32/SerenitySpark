@@ -129,7 +129,8 @@ const DurationCard: React.FC<DurationCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
+    height: 220,
+    paddingTop: 20,
   },
   card: {
     width: CARD_WIDTH,

@@ -31,7 +31,6 @@ const SessionScreen: React.FC = () => {
 
   const progress = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const opacity = useSharedValue(1);
 
   useEffect(() => {
     startAudio();
@@ -115,7 +114,6 @@ const SessionScreen: React.FC = () => {
     .onUpdate(event => {
       if (event.translationY > 0) {
         translateY.value = event.translationY;
-        opacity.value = 1 - event.translationY / 300;
       }
     })
     .onEnd(event => {
@@ -123,13 +121,11 @@ const SessionScreen: React.FC = () => {
         runOnJS(handleEndSession)();
       } else {
         translateY.value = withTiming(0);
-        opacity.value = withTiming(1);
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-    opacity: opacity.value,
   }));
 
   const formatTime = (seconds: number): string => {

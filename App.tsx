@@ -1,7 +1,12 @@
-import React from 'react';
-import { StatusBar } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 import { AppProvider, useApp } from './src/contexts/AppContext';
 import { SettingsProvider } from './src/contexts/SettingsContext';
 import { SessionProvider } from './src/contexts/SessionContext';
@@ -14,6 +19,17 @@ import SettingsScreen from './src/screens/SettingsScreen';
 
 const AppNavigator: React.FC = () => {
   const { currentScreen } = useApp();
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    // Fade out and fade in on screen change
+    opacity.value = 0;
+    opacity.value = withTiming(1, { duration: 200 });
+  }, [currentScreen]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -33,16 +49,28 @@ const AppNavigator: React.FC = () => {
   };
 
   return (
-    <>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0A0F" />
-      {renderScreen()}
-    </>
+      <Animated.View style={[styles.screenContainer, animatedStyle]}>
+        {renderScreen()}
+      </Animated.View>
+    </View>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0A0A0F', // Dark background to prevent white flash
+  },
+  screenContainer: {
+    flex: 1,
+  },
+});
+
 function App(): React.JSX.Element {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
       <SafeAreaProvider>
         <AppProvider>
           <SettingsProvider>

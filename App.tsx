@@ -1,45 +1,61 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React from 'react';
+import { StatusBar } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppProvider, useApp } from './src/contexts/AppContext';
+import { SettingsProvider } from './src/contexts/SettingsContext';
+import { SessionProvider } from './src/contexts/SessionContext';
+import { HistoryProvider } from './src/contexts/HistoryContext';
+import SplashScreen from './src/screens/SplashScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import SessionScreen from './src/screens/SessionScreen';
+import HistoryScreen from './src/screens/HistoryScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+const AppNavigator: React.FC = () => {
+  const { currentScreen } = useApp();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'Splash':
+        return <SplashScreen />;
+      case 'Home':
+        return <HomeScreen />;
+      case 'Session':
+        return <SessionScreen />;
+      case 'History':
+        return <HistoryScreen />;
+      case 'Settings':
+        return <SettingsScreen />;
+      default:
+        return <HomeScreen />;
+    }
+  };
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#0A0A0F" />
+      {renderScreen()}
+    </>
   );
-}
+};
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
+function App(): React.JSX.Element {
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppProvider>
+          <SettingsProvider>
+            <SessionProvider>
+              <HistoryProvider>
+                <AppNavigator />
+              </HistoryProvider>
+            </SessionProvider>
+          </SettingsProvider>
+        </AppProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;

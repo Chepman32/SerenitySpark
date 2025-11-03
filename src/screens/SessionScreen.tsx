@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -17,6 +17,8 @@ import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useHistory } from '../contexts/HistoryContext';
 import AudioService from '../services/AudioService';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SessionScreen: React.FC = () => {
   const { navigateToHome } = useApp();
@@ -104,10 +106,28 @@ const SessionScreen: React.FC = () => {
     navigateToHome();
   };
 
-  const handleEndSession = async () => {
-    await stopAudio();
+  const finalizeEndSession = () => {
+    stopAudio().catch(error => {
+      console.error('Failed to stop audio on session end:', error);
+    });
     endSession();
     navigateToHome();
+  };
+
+  const animateSessionDismissal = () => {
+    'worklet';
+    translateY.value = withTiming(
+      SCREEN_HEIGHT,
+      {
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+      },
+      finished => {
+        if (finished) {
+          runOnJS(finalizeEndSession)();
+        }
+      },
+    );
   };
 
   const panGesture = Gesture.Pan()
@@ -117,8 +137,8 @@ const SessionScreen: React.FC = () => {
       }
     })
     .onEnd(event => {
-      if (event.translationY > 150) {
-        runOnJS(handleEndSession)();
+      if (event.translationY > ANIMATION_CONFIG.session.swipeThreshold) {
+        animateSessionDismissal();
       } else {
         translateY.value = withTiming(0);
       }

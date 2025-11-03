@@ -56,9 +56,11 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
         showsHorizontalScrollIndicator={false}
         snapToInterval={CARD_WIDTH + CARD_SPACING}
         decelerationRate="fast"
-        contentContainerStyle={{
-          paddingHorizontal: SIDE_PADDING,
-        }}
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: SIDE_PADDING },
+        ]}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentOffset={{ x: initialOffset, y: 0 }}
@@ -130,7 +132,14 @@ const DurationCard: React.FC<DurationCardProps> = ({
 const styles = StyleSheet.create({
   container: {
     height: 220,
-    paddingTop: 20,
+    paddingVertical: 20,
+  },
+  scrollView: {
+    overflow: 'visible',
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingVertical: 20,
   },
   card: {
     width: CARD_WIDTH,

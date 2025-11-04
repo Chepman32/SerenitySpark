@@ -15,6 +15,7 @@ export interface UserSettings {
   hasSeenOnboarding: boolean;
   lastSelectedDuration: number;
   reducedMotion: boolean;
+  lastBackgroundImageIndex: number | null;
 }
 
 export interface AudioTrack {

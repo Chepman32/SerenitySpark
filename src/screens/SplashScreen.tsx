@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { theme } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
+import SplashIcon from "../assets/icons/icon.png"
 
 const SplashScreen: React.FC = () => {
   const { navigateToHome } = useApp();
@@ -46,10 +47,9 @@ const SplashScreen: React.FC = () => {
   return (
     <Pressable style={styles.container} onPress={handleSkip}>
       <Animated.View style={[styles.logoContainer, animatedStyle]}>
-        <Text style={styles.logo}>🧘</Text>
+        <Image source={SplashIcon} style={styles.logo}/>
         <Text style={styles.appName}>SerenitySpark</Text>
       </Animated.View>
-      <Text style={styles.hint}>Tap to skip</Text>
     </Pressable>
   );
 };
@@ -65,8 +65,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    fontSize: 80,
-    marginBottom: theme.spacing.lg,
+    width: 120,
+    height: 120,
+    borderRadius: theme.spacing.md
   },
   appName: {
     fontSize: 32,

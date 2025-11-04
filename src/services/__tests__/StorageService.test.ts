@@ -88,6 +88,7 @@ describe('StorageService', () => {
         hasSeenOnboarding: true,
         lastSelectedDuration: 15,
         reducedMotion: false,
+        lastBackgroundImageIndex: 2,
       };
 
       (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
@@ -109,6 +110,7 @@ describe('StorageService', () => {
         hasSeenOnboarding: true,
         lastSelectedDuration: 10,
         reducedMotion: false,
+        lastBackgroundImageIndex: 1,
       };
 
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue(

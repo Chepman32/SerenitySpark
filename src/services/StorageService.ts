@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   hasSeenOnboarding: false,
   lastSelectedDuration: 10,
   reducedMotion: false,
+  lastBackgroundImageIndex: null,
 };
 
 class StorageService {

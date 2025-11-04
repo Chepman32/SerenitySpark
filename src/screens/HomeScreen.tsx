@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ImageBackground } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  ImageBackground,
+  ImageSourcePropType,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DurationCarousel from '../components/DurationCarousel';
 import SoundToggle from '../components/SoundToggle';
@@ -10,18 +15,82 @@ import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useSettings } from '../contexts/SettingsContext';
 
+const BACKGROUND_IMAGES: ImageSourcePropType[] = [
+  require('../assets/images/antonio-virgil-mnm1lGiHghU-unsplash.jpg'),
+  require('../assets/images/victor-poblete-BrnTuS7LVpY-unsplash.jpg'),
+  require('../assets/images/sabharish-p-v-7SeVkyRJKlk-unsplash.jpg'),
+  require('../assets/images/chirag-saini-ZtORJBpQljA-unsplash.jpg'),
+  require('../assets/images/nikolay-hristov-17SOjjfHKQ4-unsplash.jpg'),
+  require('../assets/images/richard-tao-etc3j1nnTik-unsplash.jpg'),
+  require('../assets/images/imaad-whd-YEiqu8XitRI-unsplash.jpg'),
+  require('../assets/images/sabharish-p-v-hwLcTJzWFLk-unsplash.jpg'),
+  require('../assets/images/helena-janes-MCupFjvApO0-unsplash.jpg'),
+  require('../assets/images/reza-ghazali-Yn87qLYN8R8-unsplash.jpg'),
+  require('../assets/images/brian-gomes-dX8Rt1sdIWw-unsplash.jpg'),
+  require('../assets/images/prabhu-raj-g-jB4D3rXV8-unsplash.jpg'),
+  require('../assets/images/bernd-dittrich-6R7BwMBZVvE-unsplash.jpg'),
+  require('../assets/images/giancarlo-corti-BiJbcrEFnZc-unsplash.jpg'),
+];
+
+const getNextBackgroundIndex = (excludeIndex: number | null): number => {
+  const totalImages = BACKGROUND_IMAGES.length;
+  if (totalImages === 0) {
+    throw new Error('No background images available.');
+  }
+  if (totalImages === 1) {
+    return 0;
+  }
+
+  const isValidExclude =
+    typeof excludeIndex === 'number' &&
+    excludeIndex >= 0 &&
+    excludeIndex < totalImages;
+
+  let nextIndex = Math.floor(Math.random() * totalImages);
+  while (isValidExclude && nextIndex === excludeIndex) {
+    nextIndex = Math.floor(Math.random() * totalImages);
+  }
+  return nextIndex;
+};
+
 const HomeScreen: React.FC = () => {
   const { navigateToSession } = useApp();
   const { startSession } = useSession();
-  const { settings, updateSettings } = useSettings();
+  const { settings, updateSettings, isLoaded } = useSettings();
 
   const [selectedDuration, setSelectedDuration] = useState(
     settings.lastSelectedDuration,
   );
   const [natureEnabled, setNatureEnabled] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [backgroundIndex, setBackgroundIndex] = useState<number | null>(null);
+  const hasInitializedBackground = useRef(false);
+
+  const selectNewBackground = useCallback(
+    (excludeIndex: number | null) => {
+      const nextIndex = getNextBackgroundIndex(excludeIndex);
+      setBackgroundIndex(nextIndex);
+      hasInitializedBackground.current = true;
+      void updateSettings({ lastBackgroundImageIndex: nextIndex });
+    },
+    [updateSettings],
+  );
+
+  useEffect(() => {
+    if (!isLoaded || hasInitializedBackground.current) {
+      return;
+    }
+
+    const previousIndex =
+      typeof settings.lastBackgroundImageIndex === 'number'
+        ? settings.lastBackgroundImageIndex
+        : null;
+
+    selectNewBackground(previousIndex);
+  }, [isLoaded, selectNewBackground, settings.lastBackgroundImageIndex]);
 
   const handleStartSession = () => {
+    selectNewBackground(backgroundIndex);
     startSession(selectedDuration, {
       natureEnabled,
       musicEnabled,
@@ -35,46 +104,52 @@ const HomeScreen: React.FC = () => {
     updateSettings({ hasSeenOnboarding: true });
   };
 
+  const content = (
+    <SafeAreaView style={styles.container}>
+      {!settings.hasSeenOnboarding && (
+        <OnboardingOverlay onDismiss={handleDismissOnboarding} />
+      )}
+      <View style={styles.content}>
+        <DurationCarousel
+          onDurationSelect={setSelectedDuration}
+          initialDuration={selectedDuration}
+        />
+
+        <View style={styles.soundToggles}>
+          <SoundToggle
+            type="nature"
+            enabled={natureEnabled}
+            onToggle={() => setNatureEnabled(!natureEnabled)}
+            icon="🍃"
+            label="Nature"
+          />
+          <SoundToggle
+            type="music"
+            enabled={musicEnabled}
+            onToggle={() => setMusicEnabled(!musicEnabled)}
+            icon="🎵"
+            label="Music"
+          />
+        </View>
+
+        <View style={styles.startButtonContainer}>
+          <StartButton onPress={handleStartSession} />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+
+  if (backgroundIndex === null) {
+    return <View style={styles.background}>{content}</View>;
+  }
+
   return (
     <ImageBackground
-      source={{
-        uri: 'https://images.pexels.com/photos/1525041/pexels-photo-1525041.jpeg',
-      }}
+      source={BACKGROUND_IMAGES[backgroundIndex]}
       style={styles.background}
       blurRadius={2}
     >
-      <SafeAreaView style={styles.container}>
-        {!settings.hasSeenOnboarding && (
-          <OnboardingOverlay onDismiss={handleDismissOnboarding} />
-        )}
-        <View style={styles.content}>
-          <DurationCarousel
-            onDurationSelect={setSelectedDuration}
-            initialDuration={selectedDuration}
-          />
-
-          <View style={styles.soundToggles}>
-            <SoundToggle
-              type="nature"
-              enabled={natureEnabled}
-              onToggle={() => setNatureEnabled(!natureEnabled)}
-              icon="🍃"
-              label="Nature"
-            />
-            <SoundToggle
-              type="music"
-              enabled={musicEnabled}
-              onToggle={() => setMusicEnabled(!musicEnabled)}
-              icon="🎵"
-              label="Music"
-            />
-          </View>
-
-          <View style={styles.startButtonContainer}>
-            <StartButton onPress={handleStartSession} />
-          </View>
-        </View>
-      </SafeAreaView>
+      {content}
     </ImageBackground>
   );
 };

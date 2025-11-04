@@ -13,7 +13,7 @@ export const DURATION_OPTIONS: DurationOption[] = [
   {
     minutes: 5,
     icon: 'clock-outline',
-    color: '#4ECDC4',
+    color: '#cf7f35ff',
   },
   {
     minutes: 10,

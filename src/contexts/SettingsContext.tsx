@@ -12,6 +12,7 @@ interface SettingsContextType {
   settings: UserSettings;
   updateSettings: (updates: Partial<UserSettings>) => Promise<void>;
   resetSettings: () => Promise<void>;
+  isLoaded: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -27,15 +28,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     hasSeenOnboarding: false,
     lastSelectedDuration: 10,
     reducedMotion: false,
+    lastBackgroundImageIndex: null,
   });
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     loadSettings();
   }, []);
 
   const loadSettings = async () => {
-    const loadedSettings = await StorageService.getSettings();
-    setSettings(loadedSettings);
+    try {
+      const loadedSettings = await StorageService.getSettings();
+      setSettings(loadedSettings);
+    } finally {
+      setIsLoaded(true);
+    }
   };
 
   const updateSettings = async (updates: Partial<UserSettings>) => {
@@ -51,7 +58,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <SettingsContext.Provider
-      value={{ settings, updateSettings, resetSettings }}
+      value={{ settings, updateSettings, resetSettings, isLoaded }}
     >
       {children}
     </SettingsContext.Provider>

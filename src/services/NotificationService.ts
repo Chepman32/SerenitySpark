@@ -1,10 +1,4 @@
-import {
-  Alert,
-  Linking,
-  NativeModules,
-  PermissionsAndroid,
-  Platform,
-} from 'react-native';
+import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 
 const { NotificationModule } = NativeModules;
 
@@ -114,27 +108,6 @@ class NotificationService {
     return this.requestPermissions();
   }
 
-  private promptToOpenSettings(): void {
-    Alert.alert(
-      'Enable Notifications',
-      'SerenitySpark uses reminders to keep your session on track. Enable notifications in Settings to receive them.',
-      [
-        {
-          text: 'Not now',
-          style: 'cancel',
-        },
-        {
-          text: 'Open Settings',
-          onPress: () => {
-            Linking.openSettings().catch(error => {
-              console.error('Failed to open app settings:', error);
-            });
-          },
-        },
-      ],
-    );
-  }
-
   async requestPermissions(): Promise<boolean> {
     if (Platform.OS === 'ios') {
       const module = this.nativeModule;
@@ -171,13 +144,6 @@ class NotificationService {
     if (granted) {
       await this.ensureAndroidChannel();
       return true;
-    }
-
-    if (
-      Platform.OS === 'ios' ||
-      (Platform.OS === 'android' && Platform.Version >= 33)
-    ) {
-      this.promptToOpenSettings();
     }
     return false;
   }

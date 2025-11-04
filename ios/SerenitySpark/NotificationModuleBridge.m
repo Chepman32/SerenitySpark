@@ -77,19 +77,21 @@ RCT_REMAP_METHOD(
         case UNAuthorizationStatusAuthorized:
           status = @"authorized";
           break;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 120000
+#if defined(UNAuthorizationStatusProvisional)
         case UNAuthorizationStatusProvisional:
           status = @"provisional";
           break;
 #endif
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
+#if defined(UNAuthorizationStatusEphemeral)
         case UNAuthorizationStatusEphemeral:
           status = @"ephemeral";
           break;
 #endif
+#if defined(UNAuthorizationStatusRestricted)
         case UNAuthorizationStatusRestricted:
           status = @"restricted";
           break;
+#endif
         case UNAuthorizationStatusNotDetermined:
         default:
           status = @"notDetermined";

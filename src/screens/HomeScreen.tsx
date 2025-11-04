@@ -14,6 +14,7 @@ import { theme } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useSettings } from '../contexts/SettingsContext';
+import NotificationService from '../services/NotificationService';
 
 const BACKGROUND_IMAGES: ImageSourcePropType[] = [
   require('../assets/images/antonio-virgil-mnm1lGiHghU-unsplash.jpg'),
@@ -71,7 +72,9 @@ const HomeScreen: React.FC = () => {
       const nextIndex = getNextBackgroundIndex(excludeIndex);
       setBackgroundIndex(nextIndex);
       hasInitializedBackground.current = true;
-      void updateSettings({ lastBackgroundImageIndex: nextIndex });
+      updateSettings({ lastBackgroundImageIndex: nextIndex }).catch(error => {
+        console.error('Failed to persist background image index:', error);
+      });
     },
     [updateSettings],
   );
@@ -93,7 +96,18 @@ const HomeScreen: React.FC = () => {
     setSelectedDuration(duration);
   };
 
-  const beginSession = (duration: number) => {
+  const beginSession = async (duration: number) => {
+    try {
+      const granted = await NotificationService.prepare();
+      if (!granted) {
+        console.warn('Notification permission not granted.');
+      } else {
+        NotificationService.clearAll();
+      }
+    } catch (error) {
+      console.error('Failed to prepare notifications:', error);
+    }
+
     selectNewBackground(backgroundIndex);
     startSession(duration, {
       natureEnabled,
@@ -105,12 +119,16 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleStartSession = () => {
-    beginSession(selectedDuration);
+    beginSession(selectedDuration).catch(error => {
+      console.error('Failed to start session:', error);
+    });
   };
 
   const handleDurationPress = (duration: number) => {
     setSelectedDuration(duration);
-    beginSession(duration);
+    beginSession(duration).catch(error => {
+      console.error('Failed to start session from duration tap:', error);
+    });
   };
 
   const handleDismissOnboarding = () => {

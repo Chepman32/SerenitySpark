@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+  AppState,
+  AppStateStatus,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -19,6 +27,7 @@ import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useHistory } from '../contexts/HistoryContext';
 import AudioService from '../services/AudioService';
+import NotificationService from '../services/NotificationService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -32,10 +41,48 @@ const SessionScreen: React.FC = () => {
   );
   const [showTimer, setShowTimer] = useState(true);
   const [showCompletion, setShowCompletion] = useState(false);
+  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const remainingRef = useRef(timeRemaining);
 
   const progress = useSharedValue(0);
   const translateY = useSharedValue(0);
   const dismissProgress = useSharedValue(0);
+
+  useEffect(() => {
+    remainingRef.current = timeRemaining;
+  }, [timeRemaining]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current === 'active' &&
+        (nextAppState === 'background' || nextAppState === 'inactive') &&
+        sessionState.isActive
+      ) {
+        NotificationService.notifySessionRunning(remainingRef.current).catch(
+          error => {
+            console.error('Failed to schedule session reminder:', error);
+          },
+        );
+      }
+
+      if (nextAppState === 'active') {
+        NotificationService.clearAll();
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [sessionState.isActive]);
+
+  useEffect(() => {
+    if (!sessionState.isActive) {
+      NotificationService.clearAll();
+    }
+  }, [sessionState.isActive]);
 
   useEffect(() => {
     translateY.value = 0;
@@ -71,6 +118,7 @@ const SessionScreen: React.FC = () => {
     return () => {
       clearInterval(interval);
       stopAudio();
+      NotificationService.clearAll();
     };
   }, []);
 
@@ -93,6 +141,7 @@ const SessionScreen: React.FC = () => {
 
   const handleSessionComplete = async () => {
     await stopAudio();
+    NotificationService.clearAll();
     await addSession({
       id: Date.now().toString(),
       timestamp: Date.now(),
@@ -115,6 +164,7 @@ const SessionScreen: React.FC = () => {
     stopAudio().catch(error => {
       console.error('Failed to stop audio on session end:', error);
     });
+    NotificationService.clearAll();
     endSession();
     navigateToHome();
   };

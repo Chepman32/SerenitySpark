@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -22,11 +22,13 @@ const SIDE_PADDING = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 interface DurationCarouselProps {
   onDurationSelect: (duration: number) => void;
   initialDuration?: number;
+  onDurationPress?: (duration: number) => void;
 }
 
 const DurationCarousel: React.FC<DurationCarouselProps> = ({
   onDurationSelect,
   initialDuration = 10,
+  onDurationPress,
 }) => {
   const scrollX = useSharedValue(0);
   const initialIndex = DURATION_OPTIONS.findIndex(
@@ -71,6 +73,7 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
             option={option}
             index={index}
             scrollX={scrollX}
+            onPress={onDurationPress}
           />
         ))}
       </Animated.ScrollView>
@@ -82,12 +85,14 @@ interface DurationCardProps {
   option: (typeof DURATION_OPTIONS)[0];
   index: number;
   scrollX: Animated.SharedValue<number>;
+  onPress?: (duration: number) => void;
 }
 
 const DurationCard: React.FC<DurationCardProps> = ({
   option,
   index,
   scrollX,
+  onPress,
 }) => {
   const inputRange = [
     (index - 1) * (CARD_WIDTH + CARD_SPACING),
@@ -114,18 +119,26 @@ const DurationCard: React.FC<DurationCardProps> = ({
     };
   });
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress(option.minutes);
+    }
+  };
+
   return (
-    <Animated.View
-      style={[
-        styles.card,
-        { backgroundColor: option.color },
-        animatedStyle,
-        { marginRight: CARD_SPACING },
-      ]}
-    >
-      <Text style={styles.minutes}>{option.minutes}</Text>
-      <Text style={styles.label}>min</Text>
-    </Animated.View>
+    <Pressable onPress={handlePress}>
+      <Animated.View
+        style={[
+          styles.card,
+          { backgroundColor: option.color },
+          animatedStyle,
+          { marginRight: CARD_SPACING },
+        ]}
+      >
+        <Text style={styles.minutes}>{option.minutes}</Text>
+        <Text style={styles.label}>min</Text>
+      </Animated.View>
+    </Pressable>
   );
 };
 

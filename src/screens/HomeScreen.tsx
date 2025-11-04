@@ -89,15 +89,28 @@ const HomeScreen: React.FC = () => {
     selectNewBackground(previousIndex);
   }, [isLoaded, selectNewBackground, settings.lastBackgroundImageIndex]);
 
-  const handleStartSession = () => {
+  const handleDurationSelect = (duration: number) => {
+    setSelectedDuration(duration);
+  };
+
+  const beginSession = (duration: number) => {
     selectNewBackground(backgroundIndex);
-    startSession(selectedDuration, {
+    startSession(duration, {
       natureEnabled,
       musicEnabled,
       natureTrack: settings.defaultNatureTrack,
       musicTrack: settings.defaultMusicTrack,
     });
     navigateToSession();
+  };
+
+  const handleStartSession = () => {
+    beginSession(selectedDuration);
+  };
+
+  const handleDurationPress = (duration: number) => {
+    setSelectedDuration(duration);
+    beginSession(duration);
   };
 
   const handleDismissOnboarding = () => {
@@ -111,8 +124,9 @@ const HomeScreen: React.FC = () => {
       )}
       <View style={styles.content}>
         <DurationCarousel
-          onDurationSelect={setSelectedDuration}
+          onDurationSelect={handleDurationSelect}
           initialDuration={selectedDuration}
+          onDurationPress={handleDurationPress}
         />
 
         <View style={styles.soundToggles}>

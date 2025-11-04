@@ -1,4 +1,4 @@
-import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { Linking, NativeModules, PermissionsAndroid, Platform } from 'react-native';
 
 const { NotificationModule } = NativeModules;
 
@@ -188,6 +188,31 @@ class NotificationService {
     module?.clearAll?.();
     if (Platform.OS === 'android') {
       this.androidModule?.cancelAll?.();
+    }
+  }
+
+  async getPermissionStatus(): Promise<IOSAuthorizationStatus> {
+    if (Platform.OS === 'ios') {
+      const status = await this.nativeModule?.getAuthorizationStatus?.();
+      return status ?? 'notDetermined';
+    }
+
+    if (Platform.OS === 'android') {
+      if (Platform.Version < 33) {
+        return 'authorized';
+      }
+      const granted = await this.nativeModule?.isPermissionGranted?.();
+      return granted ? 'authorized' : 'denied';
+    }
+
+    return 'notDetermined';
+  }
+
+  async openSettings(): Promise<void> {
+    try {
+      await Linking.openSettings();
+    } catch (error) {
+      console.error('Failed to open app settings:', error);
     }
   }
 }

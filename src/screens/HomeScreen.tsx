@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
+  Text,
   StyleSheet,
   ImageBackground,
   ImageSourcePropType,
+  Modal,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DurationCarousel from '../components/DurationCarousel';
@@ -65,6 +69,9 @@ const HomeScreen: React.FC = () => {
   const [natureEnabled, setNatureEnabled] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [backgroundIndex, setBackgroundIndex] = useState<number | null>(null);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [pendingSessionDuration, setPendingSessionDuration] = useState<number | null>(null);
+  const [shouldShowPermissionModalNext, setShouldShowPermissionModalNext] = useState(false);
   const hasInitializedBackground = useRef(false);
 
   const selectNewBackground = useCallback(
@@ -96,18 +103,7 @@ const HomeScreen: React.FC = () => {
     setSelectedDuration(duration);
   };
 
-  const beginSession = async (duration: number) => {
-    try {
-      const granted = await NotificationService.prepare();
-      if (!granted) {
-        console.warn('Notification permission not granted.');
-      } else {
-        NotificationService.clearAll();
-      }
-    } catch (error) {
-      console.error('Failed to prepare notifications:', error);
-    }
-
+  const proceedWithSession = (duration: number) => {
     selectNewBackground(backgroundIndex);
     startSession(duration, {
       natureEnabled,
@@ -116,6 +112,56 @@ const HomeScreen: React.FC = () => {
       musicTrack: settings.defaultMusicTrack,
     });
     navigateToSession();
+  };
+
+  const beginSession = async (duration: number) => {
+    try {
+      const statusBefore = await NotificationService.getPermissionStatus();
+      const isGrantedStatus =
+        statusBefore === 'authorized' ||
+        statusBefore === 'provisional' ||
+        statusBefore === 'ephemeral';
+
+      if (shouldShowPermissionModalNext) {
+        if (isGrantedStatus) {
+          setShouldShowPermissionModalNext(false);
+        } else {
+          setPendingSessionDuration(duration);
+          setShowPermissionModal(true);
+          return;
+        }
+      }
+
+      if (
+        Platform.OS === 'ios' &&
+        (statusBefore === 'denied' || statusBefore === 'restricted')
+      ) {
+        setShouldShowPermissionModalNext(true);
+        setPendingSessionDuration(duration);
+        setShowPermissionModal(true);
+        return;
+      }
+
+      const granted = await NotificationService.prepare();
+      if (!granted) {
+        if (statusBefore === 'notDetermined') {
+          setShouldShowPermissionModalNext(true);
+        } else if (!isGrantedStatus) {
+          if (Platform.OS === 'ios') {
+            setPendingSessionDuration(duration);
+            setShowPermissionModal(true);
+          } else {
+            setShouldShowPermissionModalNext(true);
+          }
+        }
+        return;
+      }
+
+      NotificationService.clearAll();
+      proceedWithSession(duration);
+    } catch (error) {
+      console.error('Failed to prepare notifications:', error);
+    }
   };
 
   const handleStartSession = () => {
@@ -130,6 +176,53 @@ const HomeScreen: React.FC = () => {
       console.error('Failed to start session from duration tap:', error);
     });
   };
+
+  const handlePermissionModalCancel = () => {
+    const duration = pendingSessionDuration ?? selectedDuration;
+    setShowPermissionModal(false);
+    setPendingSessionDuration(null);
+    NotificationService.clearAll();
+    proceedWithSession(duration);
+  };
+
+  const handlePermissionModalGrant = () => {
+    setShowPermissionModal(false);
+    setPendingSessionDuration(null);
+    setShouldShowPermissionModalNext(false);
+    NotificationService.openSettings().catch(() => null);
+  };
+
+  const permissionModal = (
+    <Modal
+      animationType="fade"
+      transparent
+      visible={showPermissionModal}
+      onRequestClose={handlePermissionModalCancel}
+    >
+      <View style={styles.permissionModalBackdrop}>
+        <View style={styles.permissionModal}>
+          <Text style={styles.permissionModalTitle}>Enable notifications</Text>
+          <Text style={styles.permissionModalMessage}>
+            Notifications help us remind you when a session is still running. Grant access in settings, or choose Cancel to continue without reminders.
+          </Text>
+          <View style={styles.permissionModalActions}>
+            <Pressable
+              style={[styles.permissionButton, styles.permissionPrimaryButton]}
+              onPress={handlePermissionModalGrant}
+            >
+              <Text style={styles.permissionPrimaryText}>Grant Permissions</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.permissionButton, styles.permissionSecondaryButton]}
+              onPress={handlePermissionModalCancel}
+            >
+              <Text style={styles.permissionSecondaryText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   const handleDismissOnboarding = () => {
     updateSettings({ hasSeenOnboarding: true });
@@ -172,17 +265,25 @@ const HomeScreen: React.FC = () => {
   );
 
   if (backgroundIndex === null) {
-    return <View style={styles.background}>{content}</View>;
+    return (
+      <>
+        {permissionModal}
+        <View style={styles.background}>{content}</View>
+      </>
+    );
   }
 
   return (
-    <ImageBackground
-      source={BACKGROUND_IMAGES[backgroundIndex]}
-      style={styles.background}
-      blurRadius={2}
-    >
-      {content}
-    </ImageBackground>
+    <>
+      {permissionModal}
+      <ImageBackground
+        source={BACKGROUND_IMAGES[backgroundIndex]}
+        style={styles.background}
+        blurRadius={2}
+      >
+        {content}
+      </ImageBackground>
+    </>
   );
 };
 
@@ -207,6 +308,57 @@ const styles = StyleSheet.create({
   },
   startButtonContainer: {
     alignItems: 'center',
+  },
+  permissionModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  permissionModal: {
+    width: '100%',
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  permissionModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  permissionModalMessage: {
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  permissionModalActions: {
+    gap: theme.spacing.sm,
+  },
+  permissionButton: {
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  permissionPrimaryButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  permissionSecondaryButton: {
+    borderWidth: 1,
+    borderColor: theme.colors.textSecondary,
+  },
+  permissionPrimaryText: {
+    color: theme.colors.background,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  permissionSecondaryText: {
+    color: theme.colors.text,
+    fontWeight: '500',
+    fontSize: 16,
   },
 });
 

@@ -1,55 +1,58 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withSequence,
-  Easing,
-} from 'react-native-reanimated';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { StyleSheet, Pressable } from 'react-native';
+import Video from 'react-native-video';
 import { theme } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
-import SplashIcon from "../assets/icons/icon.png"
 
 const SplashScreen: React.FC = () => {
   const { navigateToHome } = useApp();
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.5);
-  const rotation = useSharedValue(0);
 
-  useEffect(() => {
-    // Animate logo entrance
-    opacity.value = withTiming(1, { duration: 500 });
-    scale.value = withSpring(1, { damping: 10, stiffness: 100 });
-    rotation.value = withSequence(
-      withTiming(360, { duration: 1000, easing: Easing.out(Easing.cubic) }),
-      withTiming(0, { duration: 500 }),
-    );
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Auto-navigate after 2 seconds
-    const timer = setTimeout(() => {
-      navigateToHome();
-    }, 2000);
-
-    return () => clearTimeout(timer);
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }, { rotate: `${rotation.value}deg` }],
-  }));
+  const goHome = useCallback(
+    (delay = 0) => {
+      clearTimer();
+      if (delay === 0) {
+        navigateToHome();
+        return;
+      }
+      timerRef.current = setTimeout(() => {
+        navigateToHome();
+        timerRef.current = null;
+      }, delay);
+    },
+    [clearTimer, navigateToHome]
+  );
 
-  const handleSkip = () => {
-    navigateToHome();
-  };
+  const handlePress = useCallback(() => goHome(0), [goHome]);
+  const handleVideoEnd = useCallback(() => goHome(200), [goHome]);
+  const handleVideoError = useCallback(() => goHome(0), [goHome]);
+
+  useEffect(() => clearTimer, [clearTimer]);
 
   return (
-    <Pressable style={styles.container} onPress={handleSkip}>
-      <Animated.View style={[styles.logoContainer, animatedStyle]}>
-        <Image source={SplashIcon} style={styles.logo}/>
-        <Text style={styles.appName}>SerenitySpark</Text>
-      </Animated.View>
+    <Pressable style={styles.container} onPress={handlePress}>
+      <Video
+        source={require('../assets/splash_video.mp4')}
+        style={styles.video}
+        resizeMode="cover"
+        onEnd={handleVideoEnd}
+        onError={handleVideoError}
+        paused={false}
+        repeat={false}
+        muted
+        ignoreSilentSwitch="obey"
+        playWhenInactive
+        controls={false}
+        rate={1.8 }
+      />
     </Pressable>
   );
 };
@@ -61,25 +64,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoContainer: {
-    alignItems: 'center',
-  },
-  logo: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.spacing.md
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: '300',
-    color: theme.colors.text,
-    letterSpacing: 2,
-  },
-  hint: {
-    position: 'absolute',
-    bottom: 40,
-    fontSize: 14,
-    color: theme.colors.textSecondary,
+  video: {
+    width: '100%',
+    height: '100%',
   },
 });
 

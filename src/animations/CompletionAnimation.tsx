@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { Canvas, Circle } from '@shopify/react-native-skia';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   withSequence,
   Easing,
   runOnJS,
@@ -35,6 +33,7 @@ const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
   const scale = useSharedValue(0.5);
   const particleProgress = useSharedValue(0);
 
+  // Generate particles
   const particles: Particle[] = Array.from(
     { length: ANIMATION_CONFIG.completion.particleCount },
     (_, i) => {
@@ -78,10 +77,6 @@ const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const particleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: 1 - particleProgress.value,
-  }));
-
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.content, animatedStyle]}>
@@ -90,31 +85,47 @@ const CompletionAnimation: React.FC<CompletionAnimationProps> = ({
         <Text style={styles.subMessage}>Well done!</Text>
       </Animated.View>
 
-      <Animated.View style={[styles.particleContainer, particleAnimatedStyle]}>
-        <Canvas style={styles.canvas}>
-          {particles.map((particle, index) => {
-            const progress = particleProgress.value;
-            const x = particle.x + particle.vx * progress * 100;
-            const y =
-              particle.y +
-              particle.vy * progress * 100 +
-              progress * progress * 200;
-
-            return (
-              <Circle
-                key={index}
-                cx={x}
-                cy={y}
-                r={particle.size * (1 - progress)}
-                color={particle.color}
-                opacity={1 - progress}
-              />
-            );
-          })}
-        </Canvas>
-      </Animated.View>
+      {/* Render particles as individual Animated.Views */}
+      {particles.map((particle, index) => {
+        return (
+          <ParticleView
+            key={index}
+            particle={particle}
+            particleProgress={particleProgress}
+          />
+        );
+      })}
     </View>
   );
+};
+
+// Individual particle component for better performance
+const ParticleView: React.FC<{
+  particle: Particle;
+  particleProgress: Animated.SharedValue<number>;
+}> = ({ particle, particleProgress }) => {
+  const particleStyle = useAnimatedStyle(() => {
+    const progress = particleProgress.value;
+    const x = particle.x + particle.vx * progress * 100;
+    const y =
+      particle.y +
+      particle.vy * progress * 100 +
+      progress * progress * 200; // Gravity effect
+
+    return {
+      position: 'absolute',
+      left: x,
+      top: y,
+      width: particle.size * (1 - progress),
+      height: particle.size * (1 - progress),
+      borderRadius: (particle.size * (1 - progress)) / 2,
+      backgroundColor: particle.color,
+      opacity: 1 - progress,
+      transform: [{ scale: 1 - progress * 0.5 }],
+    };
+  });
+
+  return <Animated.View style={particleStyle} />;
 };
 
 const styles = StyleSheet.create({
@@ -142,13 +153,6 @@ const styles = StyleSheet.create({
   subMessage: {
     fontSize: 18,
     color: theme.colors.textSecondary,
-  },
-  particleContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
-  canvas: {
-    flex: 1,
   },
 });
 

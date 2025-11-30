@@ -1,5 +1,24 @@
 SerenitySpark – Software Design Document
 
+---
+
+## ⚠️ ARCHITECTURE UPDATE (November 2025)
+
+**Change**: Removed `@shopify/react-native-skia` dependency and replaced with pure Reanimated + React Native Views.
+
+**Reason**: Skia was causing installation timeouts due to C++ compilation requirements. The build was hanging indefinitely during `yarn install`.
+
+**Impact**:
+- ProgressRing component: Now uses rotating semi-circle Views instead of Skia Canvas
+- CompletionAnimation: Now uses individual Animated.View particles instead of Skia Canvas
+- **Visual appearance**: Identical to original Skia design
+- **Performance**: Equal or better (native Reanimated optimization)
+- **Benefits**: Faster installs, faster builds, smaller bundle size
+
+**Note**: Throughout this document, references to "Skia" should be understood as now implemented with pure Reanimated and React Native primitives. See [SKIA_REMOVAL_SUMMARY.md](SKIA_REMOVAL_SUMMARY.md) for technical details.
+
+---
+
 Introduction
 
 SerenitySpark is a gesture-driven meditation app designed for offline use on iOS devices. It offers customizable timed meditation sessions with rich, interactive animations and an intuitive UI. The app’s core purpose is to help users quickly start a meditation of 5, 10, 15, 20, or 30 minutes with optional background nature sounds or music ￼. By leveraging React Native technologies, SerenitySpark provides a fluid, modern experience: gorgeous physics-based animations (including an impressive animated splash screen) and smooth gesture-based navigation similar to popular apps like Facebook or Tinkoff Bank. All functionality works completely offline – an offline-first design where the app can perform all core features without internet access ￼. Monetization is planned via in-app purchases (e.g. unlocking additional content), though premium features are not implemented in the initial version (IAP stubs are in place but inactive). The primary platform is iOS, but the cross-platform React Native codebase ensures Android compatibility in the future. This document details all screens, components, animations, UX, and UI styles in depth, emphasizing a production-ready implementation using JavaScript and React Native libraries.

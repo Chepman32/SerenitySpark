@@ -1,41 +1,77 @@
-import { Audio } from 'expo-av';
+import Sound from 'react-native-sound';
 import AudioService from '../AudioService';
 
-jest.mock('expo-av');
+type SoundMockMethods = {
+  mockPlay: jest.Mock;
+  mockStop: jest.Mock;
+  mockRelease: jest.Mock;
+  mockSetVolume: jest.Mock;
+  mockGetVolume: jest.Mock;
+  mockSetNumberOfLoops: jest.Mock;
+  mockSetCurrentTime: jest.Mock;
+  mockIsLoaded: jest.Mock;
+};
+
+const soundMockMethods: SoundMockMethods = {
+  mockPlay: jest.fn(callback => {
+    callback?.(true);
+    return true;
+  }),
+  mockStop: jest.fn(callback => callback?.()),
+  mockRelease: jest.fn(callback => callback?.()),
+  mockSetVolume: jest.fn(),
+  mockGetVolume: jest.fn(() => 1),
+  mockSetNumberOfLoops: jest.fn(),
+  mockSetCurrentTime: jest.fn(),
+  mockIsLoaded: jest.fn(() => true),
+};
+
+jest.mock('react-native-sound', () => {
+  const SoundMock = jest
+    .fn()
+    .mockImplementation((_source: any, callback?: (error?: any) => void) => {
+      callback?.();
+      return {
+        play: soundMockMethods.mockPlay,
+        stop: soundMockMethods.mockStop,
+        release: soundMockMethods.mockRelease,
+        setVolume: soundMockMethods.mockSetVolume,
+        getVolume: soundMockMethods.mockGetVolume,
+        setNumberOfLoops: soundMockMethods.mockSetNumberOfLoops,
+        setCurrentTime: soundMockMethods.mockSetCurrentTime,
+        isLoaded: soundMockMethods.mockIsLoaded,
+      };
+    });
+
+  SoundMock.setCategory = jest.fn();
+  SoundMock.enableInSilenceMode = jest.fn();
+  (SoundMock as any).__mockedMethods = soundMockMethods;
+
+  return SoundMock;
+});
 
 describe('AudioService', () => {
-  const mockSound = {
-    playAsync: jest.fn(),
-    stopAsync: jest.fn(),
-    setIsLoopingAsync: jest.fn(),
-    setVolumeAsync: jest.fn(),
-    setPositionAsync: jest.fn(),
-    getStatusAsync: jest.fn(),
-    unloadAsync: jest.fn(),
-  };
+  const soundMocks = (Sound as any).__mockedMethods as SoundMockMethods;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
-    (Audio.setAudioModeAsync as jest.Mock).mockResolvedValue(undefined);
-    (Audio.Sound.createAsync as jest.Mock).mockResolvedValue({
-      sound: mockSound,
-    });
-    mockSound.getStatusAsync.mockResolvedValue({
-      isLoaded: true,
-      volume: 1,
-    });
+    Object.values(soundMocks).forEach(mock => mock.mockClear());
+    (Sound as jest.Mock).mockClear();
+    soundMocks.mockGetVolume.mockReturnValue(1);
+    await AudioService.unloadAll();
+    (AudioService as any).sounds = new Map();
+    (AudioService as any).isInitialized = false;
   });
 
   describe('initialize', () => {
     it('should set audio mode correctly', async () => {
       await AudioService.initialize();
 
-      expect(Audio.setAudioModeAsync).toHaveBeenCalledWith({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: true,
-      });
+      expect((Sound as any).setCategory).toHaveBeenCalledWith(
+        'Playback',
+        true,
+      );
+      expect((Sound as any).enableInSilenceMode).toHaveBeenCalledWith(true);
     });
   });
 
@@ -43,7 +79,7 @@ describe('AudioService', () => {
     it('should load a track successfully', async () => {
       const sound = await AudioService.loadTrack('rain');
 
-      expect(Audio.Sound.createAsync).toHaveBeenCalled();
+      expect(Sound).toHaveBeenCalled();
       expect(sound).toBeTruthy();
     });
 
@@ -58,8 +94,8 @@ describe('AudioService', () => {
     it('should play a track with looping', async () => {
       await AudioService.playTrack('rain', true);
 
-      expect(mockSound.setIsLoopingAsync).toHaveBeenCalledWith(true);
-      expect(mockSound.playAsync).toHaveBeenCalled();
+      expect(soundMocks.mockSetNumberOfLoops).toHaveBeenCalledWith(-1);
+      expect(soundMocks.mockPlay).toHaveBeenCalled();
     });
   });
 
@@ -68,8 +104,8 @@ describe('AudioService', () => {
       await AudioService.loadTrack('rain');
       await AudioService.stopTrack('rain', false);
 
-      expect(mockSound.stopAsync).toHaveBeenCalled();
-      expect(mockSound.setPositionAsync).toHaveBeenCalledWith(0);
+      expect(soundMocks.mockStop).toHaveBeenCalled();
+      expect(soundMocks.mockSetCurrentTime).toHaveBeenCalledWith(0);
     });
   });
 
@@ -77,7 +113,7 @@ describe('AudioService', () => {
     it('should play multiple tracks simultaneously', async () => {
       await AudioService.mixTracks(['rain', 'piano']);
 
-      expect(Audio.Sound.createAsync).toHaveBeenCalledTimes(2);
+      expect((Sound as jest.Mock).mock.calls.length).toBe(2);
     });
   });
 
@@ -86,14 +122,14 @@ describe('AudioService', () => {
       await AudioService.loadTrack('rain');
       await AudioService.setVolume('rain', 0.5);
 
-      expect(mockSound.setVolumeAsync).toHaveBeenCalledWith(0.5);
+      expect(soundMocks.mockSetVolume).toHaveBeenLastCalledWith(0.5);
     });
 
     it('should clamp volume to 0-1 range', async () => {
       await AudioService.loadTrack('rain');
       await AudioService.setVolume('rain', 1.5);
 
-      expect(mockSound.setVolumeAsync).toHaveBeenCalledWith(1);
+      expect(soundMocks.mockSetVolume).toHaveBeenLastCalledWith(1);
     });
   });
 

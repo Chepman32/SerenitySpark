@@ -10,22 +10,23 @@ All 27 tasks from the specification have been completed! The app is now fully fu
 
 1. **Splash Screen** - Animated logo with tap-to-skip
 2. **Home Screen** - Duration carousel, sound toggles, and start button
-3. **Session Screen** - Timer with Skia progress ring and swipe-to-end gesture
+3. **Session Screen** - Timer with Reanimated progress ring and swipe-to-end gesture
 4. **History Screen** - Session tracking with statistics
 5. **Settings Screen** - Audio track selection and app info
 6. **Onboarding** - First-time user guidance overlay
 
 ### Technical Implementation
 
-- ✅ React Native Reanimated 3 for 60 FPS animations
-- ✅ React Native Skia for custom graphics (progress ring, particles)
+- ✅ React Native Reanimated 3 for all animations (60 FPS)
+- ✅ Pure React Native Views for custom graphics (progress ring, particles)
 - ✅ React Native Gesture Handler for swipe interactions
 - ✅ AsyncStorage for offline data persistence
-- ✅ expo-av for audio playback
+- ✅ react-native-sound for audio playback
 - ✅ Haptic feedback for tactile responses
 - ✅ Context API for state management
 - ✅ TypeScript for type safety
 - ✅ Unit tests for services
+- ✅ No native compilation dependencies (faster builds)
 
 ## Project Structure
 
@@ -44,7 +45,7 @@ SerenitySpark/
 │   │   ├── StartButton.tsx
 │   │   ├── ProgressRing.tsx
 │   │   └── OnboardingOverlay.tsx
-│   ├── animations/        # Skia animations
+│   ├── animations/        # Reanimated animations
 │   │   └── CompletionAnimation.tsx
 │   ├── contexts/          # State management
 │   │   ├── AppContext.tsx
@@ -110,7 +111,7 @@ npm test
 
 ### 3. Session Timer
 
-- Skia-based progress ring
+- Reanimated-based progress ring
 - Tap to toggle timer visibility
 - Swipe down to end session early
 - Completion animation with particles
@@ -156,7 +157,8 @@ npm test -- --watch
 ### Animations
 
 - All animations run on UI thread via Reanimated worklets
-- Skia used for custom graphics (progress ring, particles)
+- Pure React Native Views for custom graphics (progress ring, particles)
+- No native compilation overhead (faster builds)
 - 60 FPS target for smooth experience
 
 ### State Management
@@ -184,6 +186,25 @@ npm test -- --watch
 2. **Background Image**: Uses remote URL - should be bundled
 3. **Splash Animation**: Simple version - could add Matter.js physics
 4. **Gesture Nav**: Basic implementation - could add edge indicators
+
+## Architecture Changes
+
+### Skia Removal (Performance Improvement)
+
+Previously used `@shopify/react-native-skia` for:
+- ProgressRing component (circular progress)
+- CompletionAnimation (particle effects)
+
+**Replaced with pure Reanimated + React Native Views:**
+- ProgressRing: Two rotating semi-circles with shadow effects
+- CompletionAnimation: Individual Animated.View particles
+
+**Benefits:**
+- ✅ Faster yarn install (no C++ compilation)
+- ✅ Smaller app bundle size
+- ✅ Faster iOS builds
+- ✅ Same visual appearance
+- ✅ Better performance (native Reanimated)
 
 ## Next Steps
 
@@ -246,9 +267,9 @@ This project was built according to the SDD specification for SerenitySpark.
 
 ## Credits
 
-- React Native Reanimated for animations
-- React Native Skia for graphics
-- expo-av for audio playback
+- React Native Reanimated for all animations and graphics
+- react-native-sound for audio playback
+- react-native-gesture-handler for gestures
 - Background images from Pexels (placeholder)
 
 ---

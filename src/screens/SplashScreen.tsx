@@ -51,7 +51,7 @@ const SplashScreen: React.FC = () => {
         ignoreSilentSwitch="obey"
         playWhenInactive
         controls={false}
-        rate={1.8 }
+        rate={1.8}
       />
     </Pressable>
   );

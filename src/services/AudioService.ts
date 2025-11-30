@@ -1,4 +1,4 @@
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import Sound from 'react-native-sound';
 import { AudioTrack } from '../types';
 
 const AUDIO_TRACKS: AudioTrack[] = [
@@ -53,7 +53,7 @@ const AUDIO_TRACKS: AudioTrack[] = [
 ];
 
 class AudioService {
-  private sounds: Map<string, Audio.Sound> = new Map();
+  private sounds: Map<string, Sound> = new Map();
   private isInitialized = false;
 
   async initialize(): Promise<void> {
@@ -62,12 +62,8 @@ class AudioService {
     }
 
     try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: true,
-      });
+      Sound.setCategory('Playback', true);
+      Sound.enableInSilenceMode(true);
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize audio:', error);
@@ -88,8 +84,56 @@ class AudioService {
     return audioSources[track.id];
   }
 
-  async loadTrack(trackId: string): Promise<Audio.Sound | null> {
+  private async createSound(track: AudioTrack): Promise<Sound | null> {
+    const source = this.getAudioSource(track);
+    if (!source) {
+      console.error(`Audio source not found for track: ${track.id}`);
+      return null;
+    }
+
+    return new Promise(resolve => {
+      const sound = new Sound(source, error => {
+        if (error) {
+          console.error(`Failed to load track ${track.id}:`, error);
+          resolve(null);
+          return;
+        }
+
+        resolve(sound);
+      });
+    });
+  }
+
+  private playSound(sound: Sound, waitForCompletion: boolean = false): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const started = sound.play(success => {
+        if (!success) {
+          console.error('Playback failed to finish');
+          if (waitForCompletion) {
+            reject(new Error('Playback failed'));
+          }
+          return;
+        }
+        if (waitForCompletion) {
+          resolve();
+        }
+      });
+
+      if (started === false) {
+        reject(new Error('Playback failed to start'));
+        return;
+      }
+
+      if (!waitForCompletion) {
+        resolve();
+      }
+    });
+  }
+
+  async loadTrack(trackId: string): Promise<Sound | null> {
     try {
+      await this.initialize();
+
       if (this.sounds.has(trackId)) {
         return this.sounds.get(trackId)!;
       }
@@ -100,17 +144,13 @@ class AudioService {
         return null;
       }
 
-      const source = this.getAudioSource(track);
-      if (!source) {
-        console.error(`Audio source not found for track: ${trackId}`);
+      const sound = await this.createSound(track);
+      if (!sound) {
         return null;
       }
 
-      const { sound } = await Audio.Sound.createAsync(source, {
-        shouldPlay: false,
-        isLooping: true,
-        volume: 0.7,
-      });
+      sound.setNumberOfLoops(-1);
+      sound.setVolume(0.7);
 
       this.sounds.set(trackId, sound);
       return sound;
@@ -133,8 +173,8 @@ class AudioService {
         sound = loadedSound;
       }
 
-      await sound.setIsLoopingAsync(loop);
-      await sound.playAsync();
+      sound.setNumberOfLoops(loop ? -1 : 0);
+      await this.playSound(sound);
     } catch (error) {
       console.error(`Failed to play track ${trackId}:`, error);
     }
@@ -151,8 +191,12 @@ class AudioService {
         await this.fadeOutTrack(trackId, 1000);
       }
 
-      await sound.stopAsync();
-      await sound.setPositionAsync(0);
+      await new Promise<void>(resolve => {
+        sound.stop(() => {
+          sound.setCurrentTime?.(0);
+          resolve();
+        });
+      });
     } catch (error) {
       console.error(`Failed to stop track ${trackId}:`, error);
     }
@@ -173,7 +217,7 @@ class AudioService {
     try {
       const sound = this.sounds.get(trackId);
       if (sound) {
-        await sound.setVolumeAsync(Math.max(0, Math.min(1, volume)));
+        sound.setVolume(Math.max(0, Math.min(1, volume)));
       }
     } catch (error) {
       console.error(`Failed to set volume for ${trackId}:`, error);
@@ -187,19 +231,18 @@ class AudioService {
         return;
       }
 
-      const status = await sound.getStatusAsync();
-      if (!status.isLoaded) {
+      if (!sound.isLoaded()) {
         return;
       }
 
-      const startVolume = status.volume || 1;
+      const startVolume = sound.getVolume() || 1;
       const steps = 20;
       const stepDuration = duration / steps;
       const volumeStep = startVolume / steps;
 
       for (let i = 0; i < steps; i++) {
         const newVolume = startVolume - volumeStep * (i + 1);
-        await sound.setVolumeAsync(Math.max(0, newVolume));
+        sound.setVolume(Math.max(0, newVolume));
         await new Promise<void>(resolve =>
           setTimeout(() => resolve(), stepDuration),
         );
@@ -222,8 +265,11 @@ class AudioService {
 
   async unloadAll(): Promise<void> {
     try {
-      const unloadPromises = Array.from(this.sounds.values()).map(sound =>
-        sound.unloadAsync(),
+      const unloadPromises = Array.from(this.sounds.values()).map(
+        sound =>
+          new Promise<void>(resolve => {
+            sound.release(() => resolve());
+          }),
       );
       await Promise.all(unloadPromises);
       this.sounds.clear();
@@ -240,23 +286,16 @@ class AudioService {
         return;
       }
 
-      const source = this.getAudioSource(chimeTrack);
-      if (!source) {
+      const sound = await this.createSound(chimeTrack);
+      if (!sound) {
         return;
       }
 
-      const { sound } = await Audio.Sound.createAsync(source, {
-        shouldPlay: true,
-        isLooping: false,
-        volume: 0.8,
-      });
+      sound.setVolume(0.8);
+      sound.setNumberOfLoops(0);
 
-      // Unload after playing
-      sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
+      await this.playSound(sound, true);
+      sound.release();
     } catch (error) {
       console.error('Failed to play chime:', error);
     }

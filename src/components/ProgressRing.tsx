@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolate,
+} from 'react-native-reanimated';
 
 interface ProgressRingProps {
   progress: Animated.SharedValue<number>;
@@ -15,52 +19,39 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   strokeWidth,
   color,
 }) => {
-  const radius = (size - strokeWidth) / 2;
-  const centerPoint = size / 2;
-
-  // Animated style for the left half (0-50% progress)
-  const leftHalfStyle = useAnimatedStyle(() => {
-    const rotation = Math.min(progress.value * 2, 1) * 180;
-    return {
-      transform: [
-        { translateX: centerPoint },
-        { translateY: centerPoint },
-        { rotate: `${rotation}deg` },
-        { translateX: -centerPoint },
-        { translateY: -centerPoint },
-      ],
-    };
-  });
-
-  // Animated style for the right half (50-100% progress)
+  // Right Half Animation (0-50% progress)
+  // We want to fill the right side (12 to 6 o'clock).
+  // We use a semi-circle that covers the LEFT half (6 to 12) initially.
+  // By rotating it 180 degrees, it moves to the RIGHT half.
+  // Base rotation for "Left Half" (Top+Left borders) is -45deg to align to 6-12.
   const rightHalfStyle = useAnimatedStyle(() => {
-    const rotation = Math.max(progress.value * 2 - 1, 0) * 180;
+    const rotate = interpolate(progress.value, [0, 0.5], [0, 180], Extrapolate.CLAMP);
     return {
       transform: [
-        { translateX: centerPoint },
-        { translateY: centerPoint },
-        { rotate: `${180 + rotation}deg` },
-        { translateX: -centerPoint },
-        { translateY: -centerPoint },
+        { rotate: `${-45 + rotate}deg` },
       ],
     };
   });
 
-  // Animated opacity for the right half container (only visible after 50%)
-  const rightContainerStyle = useAnimatedStyle(() => {
+  // Left Half Animation (50-100% progress)
+  // We want to fill the left side (6 to 12 o'clock).
+  // We use a semi-circle that covers the RIGHT half (12 to 6) initially.
+  // By rotating it 180 degrees, it moves to the LEFT half.
+  // Base rotation for "Right Half" (Top+Right borders) is 45deg to align to 12-6.
+  const leftHalfStyle = useAnimatedStyle(() => {
+    const rotate = interpolate(progress.value, [0.5, 1], [0, 180], Extrapolate.CLAMP);
+    // We only show this after 50% to avoid glitches, although clipping handles most.
+    // Opacity is a safe guard.
     return {
+      transform: [
+        { rotate: `${45 + rotate}deg` },
+      ],
       opacity: progress.value > 0.5 ? 1 : 0,
     };
   });
 
   return (
-    <View
-      style={[
-        styles.container,
-        { width: size, height: size },
-        { transform: [{ rotate: '-90deg' }] }, // start at 12 o'clock
-      ]}
-    >
+    <View style={[styles.container, { width: size, height: size }]}>
       {/* Background circle */}
       <View
         style={[
@@ -75,70 +66,63 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
         ]}
       />
 
-      {/* Left half container (0-50%) */}
+      {/* Right Half Container (Clips to show only right side) */}
       <View
         style={[
           styles.halfContainer,
-          styles.leftHalf,
           {
             width: size / 2,
             height: size,
+            right: 0,
           },
         ]}
       >
         <Animated.View
           style={[
-            styles.halfCircle,
+            styles.circle,
             {
               width: size,
               height: size,
               borderRadius: size / 2,
               borderWidth: strokeWidth,
-              borderColor: color,
-              borderRightColor: 'transparent',
-              borderBottomColor: 'transparent',
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
-              shadowRadius: 8,
+              borderColor: 'transparent',
+              borderTopColor: color,
+              borderLeftColor: color, // Top + Left = Left Half (initially)
+              right: 0, // Shift back to center relative to this container
+            },
+            rightHalfStyle,
+          ]}
+        />
+      </View>
+
+      {/* Left Half Container (Clips to show only left side) */}
+      <View
+        style={[
+          styles.halfContainer,
+          {
+            width: size / 2,
+            height: size,
+            left: 0,
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.circle,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderWidth: strokeWidth,
+              borderColor: 'transparent',
+              borderTopColor: color,
+              borderRightColor: color, // Top + Right = Right Half (initially)
+              left: 0,
             },
             leftHalfStyle,
           ]}
         />
       </View>
-
-      {/* Right half container (50-100%) */}
-      <Animated.View
-        style={[
-          styles.halfContainer,
-          styles.rightHalf,
-          {
-            width: size / 2,
-            height: size,
-          },
-          rightContainerStyle,
-        ]}
-      >
-        <Animated.View
-          style={[
-            styles.halfCircle,
-            {
-              width: size,
-              height: size,
-              borderRadius: size / 2,
-              borderWidth: strokeWidth,
-              borderColor: color,
-              borderRightColor: 'transparent',
-              borderBottomColor: 'transparent',
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
-              shadowRadius: 8,
-            },
-            rightHalfStyle,
-          ]}
-        />
-      </Animated.View>
     </View>
   );
 };
@@ -147,7 +131,6 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   backgroundCircle: {
     position: 'absolute',
@@ -156,13 +139,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     overflow: 'hidden',
   },
-  leftHalf: {
-    left: 0,
-  },
-  rightHalf: {
-    right: 0,
-  },
-  halfCircle: {
+  circle: {
     position: 'absolute',
   },
 });

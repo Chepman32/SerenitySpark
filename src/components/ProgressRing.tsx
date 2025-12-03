@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
-import { theme } from '../constants/theme';
 
 interface ProgressRingProps {
   progress: Animated.SharedValue<number>;
@@ -35,12 +34,12 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
 
   // Animated style for the right half (50-100% progress)
   const rightHalfStyle = useAnimatedStyle(() => {
-    const rotation = Math.max((progress.value * 2 - 1), 0) * 180;
+    const rotation = Math.max(progress.value * 2 - 1, 0) * 180;
     return {
       transform: [
         { translateX: centerPoint },
         { translateY: centerPoint },
-        { rotate: `${rotation}deg` },
+        { rotate: `${180 + rotation}deg` },
         { translateX: -centerPoint },
         { translateY: -centerPoint },
       ],
@@ -55,7 +54,13 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
+    <View
+      style={[
+        styles.container,
+        { width: size, height: size },
+        { transform: [{ rotate: '-90deg' }] }, // start at 12 o'clock
+      ]}
+    >
       {/* Background circle */}
       <View
         style={[
@@ -74,8 +79,9 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       <View
         style={[
           styles.halfContainer,
+          styles.leftHalf,
           {
-            width: size,
+            width: size / 2,
             height: size,
           },
         ]}
@@ -105,8 +111,9 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       <Animated.View
         style={[
           styles.halfContainer,
+          styles.rightHalf,
           {
-            width: size,
+            width: size / 2,
             height: size,
           },
           rightContainerStyle,
@@ -148,6 +155,12 @@ const styles = StyleSheet.create({
   halfContainer: {
     position: 'absolute',
     overflow: 'hidden',
+  },
+  leftHalf: {
+    left: 0,
+  },
+  rightHalf: {
+    right: 0,
   },
   halfCircle: {
     position: 'absolute',

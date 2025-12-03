@@ -7,8 +7,8 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_SETTINGS: UserSettings = {
-  defaultNatureTrack: 'rain',
-  defaultMusicTrack: 'piano',
+  defaultNatureTrack: 'forest',
+  defaultMusicTrack: 'amberlight',
   hasSeenOnboarding: false,
   lastSelectedDuration: 10,
   reducedMotion: false,

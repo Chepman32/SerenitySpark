@@ -20,8 +20,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({
     audioSettings: {
       natureEnabled: false,
       musicEnabled: false,
-      natureTrack: 'rain',
-      musicTrack: 'piano',
+      natureTrack: 'forest',
+      musicTrack: 'amberlight',
     },
   });
 

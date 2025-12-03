@@ -123,13 +123,23 @@ const SessionScreen: React.FC = () => {
   }, []);
 
   const startAudio = async () => {
+    console.log('startAudio called', sessionState.audioSettings);
     const tracks: string[] = [];
     if (sessionState.audioSettings.natureEnabled) {
-      tracks.push(sessionState.audioSettings.natureTrack);
+      const randomNatureTrack = AudioService.getRandomTrack('nature');
+      console.log('Random nature track:', randomNatureTrack);
+      if (randomNatureTrack) {
+        tracks.push(randomNatureTrack.id);
+      }
     }
     if (sessionState.audioSettings.musicEnabled) {
-      tracks.push(sessionState.audioSettings.musicTrack);
+      const randomMusicTrack = AudioService.getRandomTrack('music');
+      console.log('Random music track:', randomMusicTrack);
+      if (randomMusicTrack) {
+        tracks.push(randomMusicTrack.id);
+      }
     }
+    console.log('Tracks to play:', tracks);
     if (tracks.length > 0) {
       await AudioService.mixTracks(tracks);
     }

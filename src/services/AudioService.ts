@@ -1,53 +1,40 @@
+import { Image } from 'react-native';
 import Sound from 'react-native-sound';
 import { AudioTrack } from '../types';
 
+const DEFAULT_VOLUME = 0.7;
+
 const AUDIO_TRACKS: AudioTrack[] = [
   {
-    id: 'rain',
-    name: 'Rain',
-    filename: 'rain.mp3',
-    type: 'nature',
-    duration: 300,
-    isPremium: false,
-  },
-  {
-    id: 'ocean',
-    name: 'Ocean Waves',
-    filename: 'ocean.mp3',
-    type: 'nature',
-    duration: 300,
-    isPremium: false,
-  },
-  {
     id: 'forest',
-    name: 'Forest',
+    name: 'Forest Ambience',
     filename: 'forest.mp3',
     type: 'nature',
     duration: 300,
     isPremium: false,
   },
   {
-    id: 'piano',
-    name: 'Piano',
-    filename: 'piano.mp3',
-    type: 'music',
-    duration: 300,
-    isPremium: false,
-  },
-  {
-    id: 'ambient',
-    name: 'Ambient',
-    filename: 'ambient.mp3',
-    type: 'music',
-    duration: 300,
-    isPremium: false,
-  },
-  {
-    id: 'chime',
-    name: 'Chime',
-    filename: 'chime.mp3',
+    id: 'jungle',
+    name: 'Jungle Night',
+    filename: 'jungle.mp3',
     type: 'nature',
-    duration: 2,
+    duration: 300,
+    isPremium: false,
+  },
+  {
+    id: 'amberlight',
+    name: 'Amberlight',
+    filename: 'amberlight.mp3',
+    type: 'music',
+    duration: 300,
+    isPremium: false,
+  },
+  {
+    id: 'sovereign',
+    name: 'Sovereign',
+    filename: 'sovereign.mp3',
+    type: 'music',
+    duration: 300,
     isPremium: false,
   },
 ];
@@ -55,6 +42,7 @@ const AUDIO_TRACKS: AudioTrack[] = [
 class AudioService {
   private sounds: Map<string, Sound> = new Map();
   private isInitialized = false;
+  private preloadingPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
     if (this.isInitialized) {
@@ -64,6 +52,7 @@ class AudioService {
     try {
       Sound.setCategory('Playback', true);
       Sound.enableInSilenceMode(true);
+      await this.preloadAllTracks();
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize audio:', error);
@@ -71,17 +60,72 @@ class AudioService {
   }
 
   private getAudioSource(track: AudioTrack): any {
-    // Map track IDs to require() statements for local assets
-    const audioSources: Record<string, any> = {
-      rain: require('../../assets/audio/nature/rain.mp3'),
-      ocean: require('../../assets/audio/nature/ocean.mp3'),
-      forest: require('../../assets/audio/nature/forest.mp3'),
-      piano: require('../../assets/audio/music/piano.mp3'),
-      ambient: require('../../assets/audio/music/ambient.mp3'),
-      chime: require('../../assets/audio/chime.mp3'),
-    };
+    // Keep this mapping explicit so Metro can bundle the assets
+    switch (track.id) {
+      case 'forest':
+        return require('../assets/audio/nature/forest.mp3');
+      case 'jungle':
+        return require('../assets/audio/nature/jungle.mp3');
+      case 'amberlight':
+        return require('../assets/audio/music/amberlight.mp3');
+      case 'sovereign':
+        return require('../assets/audio/music/sovereign.mp3');
+      default:
+        return undefined;
+    }
+  }
 
-    return audioSources[track.id];
+  private resolveAudioUri(source: any): string | null {
+    if (!source) {
+      return null;
+    }
+
+    if (typeof source === 'string') {
+      return source;
+    }
+
+    try {
+      const resolved = Image.resolveAssetSource(source);
+      if (resolved?.uri) {
+        return resolved.uri;
+      }
+    } catch (error) {
+      console.warn('Failed to resolve audio asset source:', error);
+    }
+
+    if (source.uri && typeof source.uri === 'string') {
+      return source.uri;
+    }
+
+    return null;
+  }
+
+  private preloadAllTracks(): Promise<void> {
+    if (this.preloadingPromise) {
+      return this.preloadingPromise;
+    }
+
+    this.preloadingPromise = Promise.all(
+      AUDIO_TRACKS.map(async track => {
+        if (this.sounds.has(track.id)) {
+          return;
+        }
+        const sound = await this.createSound(track);
+        if (sound) {
+          sound.setNumberOfLoops(-1);
+          sound.setVolume(DEFAULT_VOLUME);
+          this.sounds.set(track.id, sound);
+        }
+      }),
+    )
+      .catch(error => {
+        console.error('Failed to preload audio tracks:', error);
+      })
+      .then(() => {
+        this.preloadingPromise = null;
+      });
+
+    return this.preloadingPromise;
   }
 
   private async createSound(track: AudioTrack): Promise<Sound | null> {
@@ -91,8 +135,14 @@ class AudioService {
       return null;
     }
 
+    const resolvedSource = this.resolveAudioUri(source);
+    if (!resolvedSource) {
+      console.error(`Unable to resolve audio URI for track: ${track.id}`);
+      return null;
+    }
+
     return new Promise(resolve => {
-      const sound = new Sound(source, error => {
+      const sound = new Sound(resolvedSource, error => {
         if (error) {
           console.error(`Failed to load track ${track.id}:`, error);
           resolve(null);
@@ -119,10 +169,10 @@ class AudioService {
         }
       });
 
-      if (started === false) {
-        reject(new Error('Playback failed to start'));
-        return;
-      }
+      // if (started === false) {
+      //   reject(new Error('Playback failed to start'));
+      //   return;
+      // }
 
       if (!waitForCompletion) {
         resolve();
@@ -150,7 +200,7 @@ class AudioService {
       }
 
       sound.setNumberOfLoops(-1);
-      sound.setVolume(0.7);
+      sound.setVolume(DEFAULT_VOLUME);
 
       this.sounds.set(trackId, sound);
       return sound;
@@ -173,6 +223,7 @@ class AudioService {
         sound = loadedSound;
       }
 
+      sound.setVolume(DEFAULT_VOLUME);
       sound.setNumberOfLoops(loop ? -1 : 0);
       await this.playSound(sound);
     } catch (error) {
@@ -194,6 +245,7 @@ class AudioService {
       await new Promise<void>(resolve => {
         sound.stop(() => {
           sound.setCurrentTime?.(0);
+          sound.setVolume(DEFAULT_VOLUME);
           resolve();
         });
       });
@@ -268,7 +320,8 @@ class AudioService {
       const unloadPromises = Array.from(this.sounds.values()).map(
         sound =>
           new Promise<void>(resolve => {
-            sound.release(() => resolve());
+            sound.release();
+            resolve();
           }),
       );
       await Promise.all(unloadPromises);
@@ -303,12 +356,20 @@ class AudioService {
 
   getAvailableTracks(type?: 'nature' | 'music'): AudioTrack[] {
     if (type) {
-      return AUDIO_TRACKS.filter(
-        track => track.type === type && track.id !== 'chime',
-      );
+      return AUDIO_TRACKS.filter(track => track.type === type);
     }
-    return AUDIO_TRACKS.filter(track => track.id !== 'chime');
+    return AUDIO_TRACKS;
   }
+
+  getRandomTrack(type: 'nature' | 'music'): AudioTrack | undefined {
+    const tracks = this.getAvailableTracks(type);
+    if (tracks.length === 0) {
+      return undefined;
+    }
+    const randomIndex = Math.floor(Math.random() * tracks.length);
+    return tracks[randomIndex];
+  }
+
 }
 
 export default new AudioService();

@@ -23,8 +23,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [settings, setSettings] = useState<UserSettings>({
-    defaultNatureTrack: 'rain',
-    defaultMusicTrack: 'piano',
+    defaultNatureTrack: 'forest',
+    defaultMusicTrack: 'amberlight',
     hasSeenOnboarding: false,
     lastSelectedDuration: 10,
     reducedMotion: false,

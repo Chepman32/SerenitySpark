@@ -12,7 +12,7 @@ type SoundMockMethods = {
   mockIsLoaded: jest.Mock;
 };
 
-const soundMockMethods: SoundMockMethods = {
+const mockSoundMethods: SoundMockMethods = {
   mockPlay: jest.fn(callback => {
     callback?.(true);
     return true;
@@ -32,20 +32,20 @@ jest.mock('react-native-sound', () => {
     .mockImplementation((_source: any, callback?: (error?: any) => void) => {
       callback?.();
       return {
-        play: soundMockMethods.mockPlay,
-        stop: soundMockMethods.mockStop,
-        release: soundMockMethods.mockRelease,
-        setVolume: soundMockMethods.mockSetVolume,
-        getVolume: soundMockMethods.mockGetVolume,
-        setNumberOfLoops: soundMockMethods.mockSetNumberOfLoops,
-        setCurrentTime: soundMockMethods.mockSetCurrentTime,
-        isLoaded: soundMockMethods.mockIsLoaded,
+        play: mockSoundMethods.mockPlay,
+        stop: mockSoundMethods.mockStop,
+        release: mockSoundMethods.mockRelease,
+        setVolume: mockSoundMethods.mockSetVolume,
+        getVolume: mockSoundMethods.mockGetVolume,
+        setNumberOfLoops: mockSoundMethods.mockSetNumberOfLoops,
+        setCurrentTime: mockSoundMethods.mockSetCurrentTime,
+        isLoaded: mockSoundMethods.mockIsLoaded,
       };
     });
 
   SoundMock.setCategory = jest.fn();
   SoundMock.enableInSilenceMode = jest.fn();
-  (SoundMock as any).__mockedMethods = soundMockMethods;
+  (SoundMock as any).__mockedMethods = mockSoundMethods;
 
   return SoundMock;
 });
@@ -77,7 +77,7 @@ describe('AudioService', () => {
 
   describe('loadTrack', () => {
     it('should load a track successfully', async () => {
-      const sound = await AudioService.loadTrack('rain');
+      const sound = await AudioService.loadTrack('forest');
 
       expect(Sound).toHaveBeenCalled();
       expect(sound).toBeTruthy();
@@ -92,7 +92,7 @@ describe('AudioService', () => {
 
   describe('playTrack', () => {
     it('should play a track with looping', async () => {
-      await AudioService.playTrack('rain', true);
+      await AudioService.playTrack('forest', true);
 
       expect(soundMocks.mockSetNumberOfLoops).toHaveBeenCalledWith(-1);
       expect(soundMocks.mockPlay).toHaveBeenCalled();
@@ -101,8 +101,8 @@ describe('AudioService', () => {
 
   describe('stopTrack', () => {
     it('should stop a track without fade', async () => {
-      await AudioService.loadTrack('rain');
-      await AudioService.stopTrack('rain', false);
+      await AudioService.loadTrack('forest');
+      await AudioService.stopTrack('forest', false);
 
       expect(soundMocks.mockStop).toHaveBeenCalled();
       expect(soundMocks.mockSetCurrentTime).toHaveBeenCalledWith(0);
@@ -111,7 +111,7 @@ describe('AudioService', () => {
 
   describe('mixTracks', () => {
     it('should play multiple tracks simultaneously', async () => {
-      await AudioService.mixTracks(['rain', 'piano']);
+      await AudioService.mixTracks(['forest', 'amberlight']);
 
       expect((Sound as jest.Mock).mock.calls.length).toBe(2);
     });
@@ -119,15 +119,15 @@ describe('AudioService', () => {
 
   describe('setVolume', () => {
     it('should set volume within valid range', async () => {
-      await AudioService.loadTrack('rain');
-      await AudioService.setVolume('rain', 0.5);
+      await AudioService.loadTrack('forest');
+      await AudioService.setVolume('forest', 0.5);
 
       expect(soundMocks.mockSetVolume).toHaveBeenLastCalledWith(0.5);
     });
 
     it('should clamp volume to 0-1 range', async () => {
-      await AudioService.loadTrack('rain');
-      await AudioService.setVolume('rain', 1.5);
+      await AudioService.loadTrack('forest');
+      await AudioService.setVolume('forest', 1.5);
 
       expect(soundMocks.mockSetVolume).toHaveBeenLastCalledWith(1);
     });

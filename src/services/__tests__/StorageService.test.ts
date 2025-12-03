@@ -83,8 +83,8 @@ describe('StorageService', () => {
   describe('saveSettings', () => {
     it('should save settings to AsyncStorage', async () => {
       const mockSettings: UserSettings = {
-        defaultNatureTrack: 'ocean',
-        defaultMusicTrack: 'ambient',
+        defaultNatureTrack: 'forest',
+        defaultMusicTrack: 'amberlight',
         hasSeenOnboarding: true,
         lastSelectedDuration: 15,
         reducedMotion: false,
@@ -105,8 +105,8 @@ describe('StorageService', () => {
   describe('getSettings', () => {
     it('should retrieve settings from AsyncStorage', async () => {
       const mockSettings: UserSettings = {
-        defaultNatureTrack: 'rain',
-        defaultMusicTrack: 'piano',
+        defaultNatureTrack: 'forest',
+        defaultMusicTrack: 'amberlight',
         hasSeenOnboarding: true,
         lastSelectedDuration: 10,
         reducedMotion: false,

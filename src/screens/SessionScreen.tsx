@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSpring,
   Easing,
   runOnJS,
   interpolate,
@@ -181,15 +182,19 @@ const SessionScreen: React.FC = () => {
 
   const animateSessionDismissal = () => {
     'worklet';
-    dismissProgress.value = withTiming(1, {
-      duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
-      easing: Easing.out(Easing.cubic),
-    });
+    const easing = Easing.bezier(0.22, 0.61, 0.36, 1);
+    dismissProgress.value = withTiming(
+      1,
+      {
+        duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
+        easing,
+      },
+    );
     translateY.value = withTiming(
       SCREEN_HEIGHT,
       {
         duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
-        easing: Easing.out(Easing.cubic),
+        easing,
       },
       finished => {
         if (finished) {
@@ -199,11 +204,15 @@ const SessionScreen: React.FC = () => {
     );
   };
 
-  const resetDismissState = () => {
+  const resetDismissState = (velocityY = 0) => {
     'worklet';
-    translateY.value = withTiming(0, {
-      duration: 220,
-      easing: Easing.out(Easing.cubic),
+    translateY.value = withSpring(0, {
+      damping: 18,
+      stiffness: 180,
+      mass: 0.9,
+      velocity: velocityY,
+      restDisplacementThreshold: 0.2,
+      restSpeedThreshold: 0.2,
     });
     dismissProgress.value = withTiming(0, {
       duration: 220,
@@ -215,27 +224,28 @@ const SessionScreen: React.FC = () => {
     .onUpdate(event => {
       'worklet';
       if (event.translationY > 0) {
-        translateY.value = event.translationY;
+        const translation = event.translationY;
+        translateY.value = translation;
         const targetProgress = Math.min(
           Math.max(
-            event.translationY /
-              (ANIMATION_CONFIG.session.swipeThreshold * 1.6),
+            translation /
+              (ANIMATION_CONFIG.session.swipeThreshold * 1.4),
             0,
           ),
           1,
         );
-        dismissProgress.value = withTiming(targetProgress, {
-          duration: 120,
-          easing: Easing.out(Easing.cubic),
-        });
+        dismissProgress.value = targetProgress;
       }
     })
     .onEnd(event => {
       'worklet';
-      if (event.translationY > ANIMATION_CONFIG.session.swipeThreshold) {
+      const shouldDismiss =
+        event.translationY > ANIMATION_CONFIG.session.swipeThreshold ||
+        event.velocityY > 1200;
+      if (shouldDismiss) {
         animateSessionDismissal();
       } else {
-        resetDismissState();
+        resetDismissState(event.velocityY);
       }
     });
 
@@ -293,40 +303,43 @@ const SessionScreen: React.FC = () => {
     <GestureDetector gesture={panGesture}>
       <View style={styles.root}>
         <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="none" />
-        <Animated.View style={[styles.container, animatedStyle]}>
-          <SafeAreaView style={styles.safeArea}>
-            <Pressable
-              style={styles.content}
-              onPress={() => setShowTimer(!showTimer)}
-            >
-              <Animated.View
-                style={[styles.pulse, pulseStyle]}
-                pointerEvents="none"
-              />
-              <Animated.View
-                style={[styles.glow, glowStyle]}
-                pointerEvents="none"
-              />
-              <View style={styles.progressContainer}>
-                <ProgressRing
-                  progress={progress}
-                  size={ANIMATION_CONFIG.session.progressRingSize}
-                  strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
-                  color={theme.colors.primary}
+        <Animated.View style={[styles.cardWrapper, animatedStyle]}>
+          <View style={styles.edgeSoftener} pointerEvents="none" />
+          <View style={styles.container}>
+            <SafeAreaView style={styles.safeArea}>
+              <Pressable
+                style={styles.content}
+                onPress={() => setShowTimer(!showTimer)}
+              >
+                <Animated.View
+                  style={[styles.pulse, pulseStyle]}
+                  pointerEvents="none"
                 />
-                {showTimer && (
-                  <Text style={styles.timerText}>
-                    {formatTime(timeRemaining)}
-                  </Text>
-                )}
-              </View>
+                <Animated.View
+                  style={[styles.glow, glowStyle]}
+                  pointerEvents="none"
+                />
+                <View style={styles.progressContainer}>
+                  <ProgressRing
+                    progress={progress}
+                    size={ANIMATION_CONFIG.session.progressRingSize}
+                    strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
+                    color={theme.colors.primary}
+                  />
+                  {showTimer && (
+                    <Text style={styles.timerText}>
+                      {formatTime(timeRemaining)}
+                    </Text>
+                  )}
+                </View>
 
-              <Text style={styles.hint}>Swipe down to end</Text>
-            </Pressable>
-          </SafeAreaView>
-          {showCompletion && (
-            <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
-          )}
+                <Text style={styles.hint}>Swipe down to end</Text>
+              </Pressable>
+            </SafeAreaView>
+            {showCompletion && (
+              <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
+            )}
+          </View>
         </Animated.View>
       </View>
     </GestureDetector>
@@ -337,9 +350,26 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  cardWrapper: {
+    flex: 1,
+    borderRadius: 24,
+    shadowColor: '#050505',
+    shadowOpacity: 0.35,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 18,
+    overflow: 'visible',
+  },
+  edgeSoftener: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 24,
+    backgroundColor: 'rgba(8, 8, 12, 0.08)',
+  },
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(10,10,15,0.96)',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

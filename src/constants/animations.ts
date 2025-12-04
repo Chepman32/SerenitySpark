@@ -15,7 +15,7 @@ export const ANIMATION_CONFIG = {
     swipeThreshold: 150,
     progressRingSize: 200,
     progressRingStrokeWidth: 8,
-    dismissAnimationDuration: 0,
+    dismissAnimationDuration: 420,
     dismissScale: {
       mid: 0.92,
       end: 0.85,

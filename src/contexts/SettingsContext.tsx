@@ -29,6 +29,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     lastSelectedDuration: 10,
     reducedMotion: false,
     lastBackgroundImageIndex: null,
+    hardModeEnabled: false,
+    aggressiveRemindersEnabled: false,
+    focusAdvisorEnabled: true,
+    premiumTheme: 'default',
   });
   const [isLoaded, setIsLoaded] = useState(false);
 

@@ -75,31 +75,6 @@ class AudioService {
     }
   }
 
-  private resolveAudioUri(source: any): string | null {
-    if (!source) {
-      return null;
-    }
-
-    if (typeof source === 'string') {
-      return source;
-    }
-
-    try {
-      const resolved = Image.resolveAssetSource(source);
-      if (resolved?.uri) {
-        return resolved.uri;
-      }
-    } catch (error) {
-      console.warn('Failed to resolve audio asset source:', error);
-    }
-
-    if (source.uri && typeof source.uri === 'string') {
-      return source.uri;
-    }
-
-    return null;
-  }
-
   private preloadAllTracks(): Promise<void> {
     if (this.preloadingPromise) {
       return this.preloadingPromise;
@@ -142,7 +117,7 @@ class AudioService {
     }
 
     return new Promise(resolve => {
-      const sound = new Sound(resolvedSource, error => {
+      const sound = new Sound(resolvedSource, undefined, error => {
         if (error) {
           console.error(`Failed to load track ${track.id}:`, error);
           resolve(null);
@@ -368,6 +343,31 @@ class AudioService {
     }
     const randomIndex = Math.floor(Math.random() * tracks.length);
     return tracks[randomIndex];
+  }
+
+  private resolveAudioUri(source: any): string | null {
+    if (!source) {
+      return null;
+    }
+
+    if (typeof source === 'string') {
+      return source;
+    }
+
+    try {
+      const resolved = Image.resolveAssetSource(source);
+      if (resolved?.uri) {
+        return resolved.uri;
+      }
+    } catch (error) {
+      console.warn('Failed to resolve audio asset source:', error);
+    }
+
+    if (source.uri && typeof source.uri === 'string') {
+      return source.uri;
+    }
+
+    return null;
   }
 
 }

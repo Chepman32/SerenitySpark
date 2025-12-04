@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type Screen = 'Splash' | 'Home' | 'Session' | 'History' | 'Settings';
+type Screen =
+  | 'Splash'
+  | 'Home'
+  | 'Session'
+  | 'History'
+  | 'Settings'
+  | 'Statistics';
 
 interface AppContextType {
   currentScreen: Screen;
@@ -9,6 +15,7 @@ interface AppContextType {
   navigateToSession: () => void;
   navigateToHistory: () => void;
   navigateToSettings: () => void;
+  navigateToStatistics: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -22,6 +29,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const navigateToSession = () => setCurrentScreen('Session');
   const navigateToHistory = () => setCurrentScreen('History');
   const navigateToSettings = () => setCurrentScreen('Settings');
+  const navigateToStatistics = () => setCurrentScreen('Statistics');
 
   return (
     <AppContext.Provider
@@ -32,6 +40,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         navigateToSession,
         navigateToHistory,
         navigateToSettings,
+        navigateToStatistics,
       }}
     >
       {children}

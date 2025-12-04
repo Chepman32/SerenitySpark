@@ -27,9 +27,7 @@ target 'SerenitySpark' do
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      :hermes_enabled => true
-      # :ccache_enabled => true
+      :mac_catalyst_enabled => false
     )
   end
 end

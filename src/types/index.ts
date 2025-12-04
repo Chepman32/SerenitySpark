@@ -3,6 +3,9 @@ export interface SessionRecord {
   timestamp: number;
   duration: number;
   completed: boolean;
+  endType?: 'completed' | 'gave_up' | 'cancelled';
+  endReason?: string | null;
+  actualDurationSeconds?: number;
   audioSettings: {
     nature: boolean;
     music: boolean;
@@ -16,6 +19,10 @@ export interface UserSettings {
   lastSelectedDuration: number;
   reducedMotion: boolean;
   lastBackgroundImageIndex: number | null;
+  hardModeEnabled: boolean;
+  aggressiveRemindersEnabled: boolean;
+  focusAdvisorEnabled: boolean;
+  premiumTheme: 'default' | 'amoled' | 'neon' | 'seasonal';
 }
 
 export interface AudioTrack {
@@ -45,4 +52,34 @@ export interface HistoryStats {
   totalSessions: number;
   totalMinutes: number;
   currentStreak: number;
+  completedSessions: number;
+  gaveUpSessions: number;
+  completionRate: number;
+  weeklyMinutes: number;
+  monthlyMinutes: number;
+  averageDuration: number;
+  bestStreak: number;
+}
+
+export type PremiumFeature =
+  | 'focusOptimizer'
+  | 'distractionBlocking'
+  | 'hardMode'
+  | 'advancedAnalytics'
+  | 'premiumThemes'
+  | 'liveActivities'
+  | 'backups'
+  | 'reports'
+  | 'soundPacks';
+
+export interface SubscriptionState {
+  isPremium: boolean;
+  activeProducts: string[];
+  entitlements: Record<PremiumFeature, boolean>;
+  packs: {
+    themePack: boolean;
+    focusSoundsPack: boolean;
+    deepWorkPack: boolean;
+  };
+  lastSynced?: number;
 }

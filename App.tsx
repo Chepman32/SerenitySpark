@@ -11,11 +11,13 @@ import { AppProvider, useApp } from './src/contexts/AppContext';
 import { SettingsProvider } from './src/contexts/SettingsContext';
 import { SessionProvider } from './src/contexts/SessionContext';
 import { HistoryProvider } from './src/contexts/HistoryContext';
+import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
 import SplashScreen from './src/screens/SplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionScreen from './src/screens/SessionScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import StatisticsScreen from './src/screens/StatisticsScreen';
 
 const AppNavigator: React.FC = () => {
   const { currentScreen } = useApp();
@@ -43,6 +45,8 @@ const AppNavigator: React.FC = () => {
         return <HistoryScreen />;
       case 'Settings':
         return <SettingsScreen />;
+      case 'Statistics':
+        return <StatisticsScreen />;
       default:
         return <HomeScreen />;
     }
@@ -73,13 +77,15 @@ function App(): React.JSX.Element {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
       <SafeAreaProvider>
         <AppProvider>
-          <SettingsProvider>
-            <SessionProvider>
-              <HistoryProvider>
-                <AppNavigator />
-              </HistoryProvider>
-            </SessionProvider>
-          </SettingsProvider>
+          <SubscriptionProvider>
+            <SettingsProvider>
+              <SessionProvider>
+                <HistoryProvider>
+                  <AppNavigator />
+                </HistoryProvider>
+              </SessionProvider>
+            </SettingsProvider>
+          </SubscriptionProvider>
         </AppProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

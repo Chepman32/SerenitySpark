@@ -10,6 +10,12 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 import DurationCarousel from '../components/DurationCarousel';
 import SoundToggle from '../components/SoundToggle';
 import StartButton from '../components/StartButton';
@@ -18,7 +24,13 @@ import { theme } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { useHistory } from '../contexts/HistoryContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { buildFocusAdvice, FocusAdvice } from '../services/FocusAdvisor';
 import NotificationService from '../services/NotificationService';
+import PremiumCallout from '../components/PremiumCallout';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 
 const BACKGROUND_IMAGES: ImageSourcePropType[] = [
   require('../assets/images/antonio-virgil-mnm1lGiHghU-unsplash.jpg'),
@@ -59,9 +71,11 @@ const getNextBackgroundIndex = (excludeIndex: number | null): number => {
 };
 
 const HomeScreen: React.FC = () => {
-  const { navigateToSession } = useApp();
+  const { navigateToSession, navigateToSettings, navigateToStatistics } = useApp();
   const { startSession } = useSession();
   const { settings, updateSettings, isLoaded } = useSettings();
+  const { sessions } = useHistory();
+  const { hasFeature } = useSubscription();
 
   const [selectedDuration, setSelectedDuration] = useState(
     settings.lastSelectedDuration,
@@ -72,7 +86,10 @@ const HomeScreen: React.FC = () => {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [pendingSessionDuration, setPendingSessionDuration] = useState<number | null>(null);
   const [shouldShowPermissionModalNext, setShouldShowPermissionModalNext] = useState(false);
+  const [focusAdvice, setFocusAdvice] = useState<FocusAdvice | null>(null);
+  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
   const hasInitializedBackground = useRef(false);
+  const translateY = useSharedValue(0);
 
   const selectNewBackground = useCallback(
     (excludeIndex: number | null) => {
@@ -99,8 +116,59 @@ const HomeScreen: React.FC = () => {
     selectNewBackground(previousIndex);
   }, [isLoaded, selectNewBackground, settings.lastBackgroundImageIndex]);
 
+  useEffect(() => {
+    const optimizerEnabled =
+      hasFeature('focusOptimizer') && settings.focusAdvisorEnabled;
+    if (!optimizerEnabled) {
+      setFocusAdvice(null);
+      return;
+    }
+    const advice = buildFocusAdvice(sessions);
+    setFocusAdvice(advice);
+  }, [sessions, settings.focusAdvisorEnabled, hasFeature]);
+
+  const handleSwipeNavigate = (direction: 'up' | 'down') => {
+    if (direction === 'up') {
+      navigateToSettings();
+    } else {
+      navigateToStatistics();
+    }
+  };
+
+  const panGesture = Gesture.Pan()
+    .onUpdate(event => {
+      'worklet';
+      translateY.value = event.translationY;
+    })
+    .onEnd(event => {
+      'worklet';
+      const threshold = 80;
+      if (event.translationY < -threshold) {
+        runOnJS(handleSwipeNavigate)('up');
+      } else if (event.translationY > threshold) {
+        runOnJS(handleSwipeNavigate)('down');
+      }
+      translateY.value = withTiming(0, { duration: 200 });
+    });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const clamped = Math.max(-120, Math.min(120, translateY.value));
+    return {
+      transform: [{ translateY: clamped }],
+      opacity: interpolate(Math.abs(clamped), [0, 120], [1, 0.9]),
+    };
+  });
+
   const handleDurationSelect = (duration: number) => {
     setSelectedDuration(duration);
+  };
+
+  const handleApplyAdvice = () => {
+    if (!focusAdvice) {
+      setShowPremiumPrompt(true);
+      return;
+    }
+    setSelectedDuration(focusAdvice.focusMinutes);
   };
 
   const proceedWithSession = (duration: number) => {
@@ -224,6 +292,30 @@ const HomeScreen: React.FC = () => {
     </Modal>
   );
 
+  const premiumModal = (
+    <Modal
+      animationType="fade"
+      transparent
+      visible={showPremiumPrompt}
+      onRequestClose={() => setShowPremiumPrompt(false)}
+    >
+      <View style={styles.permissionModalBackdrop}>
+        <View style={styles.permissionModal}>
+          <Text style={styles.permissionModalTitle}>Premium required</Text>
+          <Text style={styles.permissionModalMessage}>
+            Unlock SerenitySpark Premium to enable Focus Advisor, hard mode, and distraction blocking reminders.
+          </Text>
+          <Pressable
+            style={[styles.permissionButton, styles.permissionPrimaryButton]}
+            onPress={() => setShowPremiumPrompt(false)}
+          >
+            <Text style={styles.permissionPrimaryText}>Got it</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const handleDismissOnboarding = () => {
     updateSettings({ hasSeenOnboarding: true });
   };
@@ -234,6 +326,33 @@ const HomeScreen: React.FC = () => {
         <OnboardingOverlay onDismiss={handleDismissOnboarding} />
       )}
       <View style={styles.content}>
+        {settings.focusAdvisorEnabled && (
+          hasFeature('focusOptimizer') ? (
+            focusAdvice && (
+              <View style={styles.adviceCard}>
+                <View style={styles.adviceHeader}>
+                  <Text style={styles.adviceLabel}>Suggested by Focus Advisor</Text>
+                  <Text style={styles.adviceConfidence}>
+                    {Math.round(focusAdvice.confidence * 100)}% confidence
+                  </Text>
+                </View>
+                <Text style={styles.adviceTitle}>
+                  {focusAdvice.focusMinutes} min focus · {focusAdvice.breakMinutes} min break
+                </Text>
+                <Text style={styles.adviceRationale}>{focusAdvice.rationale}</Text>
+                <Pressable style={styles.applyButton} onPress={handleApplyAdvice}>
+                  <Text style={styles.applyButtonText}>Apply suggestion</Text>
+                </Pressable>
+              </View>
+            )
+          ) : (
+            <PremiumCallout
+              title="Let AI pick your perfect focus length"
+              description="Premium adapts session length based on your history, so you fail less often."
+              onPress={() => setShowPremiumPrompt(true)}
+            />
+          )
+        )}
         <DurationCarousel
           onDurationSelect={handleDurationSelect}
           initialDuration={selectedDuration}
@@ -268,7 +387,12 @@ const HomeScreen: React.FC = () => {
     return (
       <>
         {permissionModal}
-        <View style={styles.background}>{content}</View>
+        {premiumModal}
+        <GestureDetector gesture={panGesture}>
+          <Animated.View style={[styles.background, animatedStyle]}>
+            {content}
+          </Animated.View>
+        </GestureDetector>
       </>
     );
   }
@@ -276,13 +400,18 @@ const HomeScreen: React.FC = () => {
   return (
     <>
       {permissionModal}
-      <ImageBackground
-        source={BACKGROUND_IMAGES[backgroundIndex]}
-        style={styles.background}
-        blurRadius={2}
-      >
-        {content}
-      </ImageBackground>
+      {premiumModal}
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.background, animatedStyle]}>
+          <ImageBackground
+            source={BACKGROUND_IMAGES[backgroundIndex]}
+            style={styles.background}
+            blurRadius={2}
+          >
+            {content}
+          </ImageBackground>
+        </Animated.View>
+      </GestureDetector>
     </>
   );
 };
@@ -300,6 +429,51 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-around',
     paddingVertical: theme.spacing.xl,
+  },
+  adviceCard: {
+    backgroundColor: 'rgba(17, 24, 36, 0.9)',
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(78, 205, 196, 0.35)',
+    marginHorizontal: theme.spacing.md,
+  },
+  adviceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  adviceLabel: {
+    color: theme.colors.text,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  adviceConfidence: {
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+  },
+  adviceTitle: {
+    color: theme.colors.primary,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  adviceRationale: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  applyButton: {
+    marginTop: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: theme.colors.background,
+    fontWeight: '700',
+    fontSize: 16,
   },
   soundToggles: {
     flexDirection: 'row',

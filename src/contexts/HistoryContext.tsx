@@ -26,6 +26,13 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
     totalSessions: 0,
     totalMinutes: 0,
     currentStreak: 0,
+    completedSessions: 0,
+    gaveUpSessions: 0,
+    completionRate: 0,
+    weeklyMinutes: 0,
+    monthlyMinutes: 0,
+    averageDuration: 0,
+    bestStreak: 0,
   });
 
   useEffect(() => {
@@ -42,21 +49,81 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const calculateStats = () => {
-    const totalSessions = sessions.filter(s => s.completed).length;
-    const totalMinutes = sessions
-      .filter(s => s.completed)
-      .reduce((sum, s) => sum + s.duration, 0);
+    const completedSessions = sessions.filter(s => s.completed).length;
+    const gaveUpSessions = sessions.filter(
+      s => !s.completed && s.endType === 'gave_up',
+    ).length;
+    const totalSessions = sessions.length;
+
+    const totalFocusSeconds = sessions.reduce((sum, s) => {
+      const elapsedSeconds =
+        typeof s.actualDurationSeconds === 'number'
+          ? s.actualDurationSeconds
+          : s.duration * 60;
+      return sum + elapsedSeconds;
+    }, 0);
+
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    const weeklyMinutes = Math.round(
+      sessions
+        .filter(s => s.timestamp >= weekAgo)
+        .reduce((sum, s) => {
+          const elapsedSeconds =
+            typeof s.actualDurationSeconds === 'number'
+              ? s.actualDurationSeconds
+              : s.duration * 60;
+          return sum + elapsedSeconds / 60;
+        }, 0),
+    );
+
+    const monthlyMinutes = Math.round(
+      sessions
+        .filter(s => s.timestamp >= monthAgo)
+        .reduce((sum, s) => {
+          const elapsedSeconds =
+            typeof s.actualDurationSeconds === 'number'
+              ? s.actualDurationSeconds
+              : s.duration * 60;
+          return sum + elapsedSeconds / 60;
+        }, 0),
+    );
+
+    const averageDuration =
+      totalSessions === 0
+        ? 0
+        : Math.round(
+            sessions.reduce((sum, s) => {
+              const durationMinutes = s.actualDurationSeconds
+                ? s.actualDurationSeconds / 60
+                : s.duration;
+              return sum + durationMinutes;
+            }, 0) / totalSessions,
+          );
 
     const currentStreak = calculateStreak(sessions);
+    const bestStreak = calculateStreak(sessions, true);
 
     setStats({
       totalSessions,
-      totalMinutes,
+      totalMinutes: Math.round(totalFocusSeconds / 60),
       currentStreak,
+      completedSessions,
+      gaveUpSessions,
+      completionRate:
+        totalSessions === 0 ? 0 : completedSessions / totalSessions,
+      weeklyMinutes,
+      monthlyMinutes,
+      averageDuration,
+      bestStreak,
     });
   };
 
-  const calculateStreak = (sessionList: SessionRecord[]): number => {
+  const calculateStreak = (
+    sessionList: SessionRecord[],
+    findMax = false,
+  ): number => {
     if (sessionList.length === 0) {
       return 0;
     }
@@ -70,6 +137,7 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     let streak = 0;
+    let best = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     let currentDate = today.getTime();
@@ -81,12 +149,13 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
       if (sessionDate.getTime() === currentDate) {
         streak++;
         currentDate -= 24 * 60 * 60 * 1000;
+        best = Math.max(best, streak);
       } else if (sessionDate.getTime() < currentDate) {
         break;
       }
     }
 
-    return streak;
+    return findMax ? Math.max(best, streak) : streak;
   };
 
   const addSession = async (session: SessionRecord) => {

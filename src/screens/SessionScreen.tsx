@@ -7,6 +7,7 @@ import {
   Dimensions,
   AppState,
   AppStateStatus,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -27,6 +28,8 @@ import { ANIMATION_CONFIG } from '../constants/animations';
 import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useHistory } from '../contexts/HistoryContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import AudioService from '../services/AudioService';
 import NotificationService from '../services/NotificationService';
 
@@ -36,14 +39,29 @@ const SessionScreen: React.FC = () => {
   const { navigateToHome } = useApp();
   const { sessionState, endSession } = useSession();
   const { addSession } = useHistory();
+  const { settings } = useSettings();
+  const { hasFeature } = useSubscription();
 
   const [timeRemaining, setTimeRemaining] = useState(
     sessionState.duration * 60,
   );
   const [showTimer, setShowTimer] = useState(true);
   const [showCompletion, setShowCompletion] = useState(false);
+  const [showEarlyExitPrompt, setShowEarlyExitPrompt] = useState(false);
+  const [pendingReason, setPendingReason] = useState('Lost focus');
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const remainingRef = useRef(timeRemaining);
+  const nudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hardModeActive =
+    hasFeature('hardMode') && settings.hardModeEnabled;
+  const aggressiveRemindersActive =
+    hasFeature('distractionBlocking') && settings.aggressiveRemindersEnabled;
+  const earlyExitReasons = [
+    'Lost focus',
+    'Urgent task',
+    'Too long / fatigue',
+    'Need a break',
+  ];
 
   const progress = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -54,6 +72,13 @@ const SessionScreen: React.FC = () => {
   }, [timeRemaining]);
 
   useEffect(() => {
+    const clearNudgeTimeout = () => {
+      if (nudgeTimeoutRef.current) {
+        clearTimeout(nudgeTimeoutRef.current);
+        nudgeTimeoutRef.current = null;
+      }
+    };
+
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (
         appState.current === 'active' &&
@@ -65,10 +90,19 @@ const SessionScreen: React.FC = () => {
             console.error('Failed to schedule session reminder:', error);
           },
         );
+        if (aggressiveRemindersActive) {
+          clearNudgeTimeout();
+          nudgeTimeoutRef.current = setTimeout(() => {
+            NotificationService.notifySessionRunning(remainingRef.current).catch(
+              error => console.error('Failed to send aggressive reminder:', error),
+            );
+          }, 45000);
+        }
       }
 
       if (nextAppState === 'active') {
         NotificationService.clearAll();
+        clearNudgeTimeout();
       }
 
       appState.current = nextAppState;
@@ -76,8 +110,9 @@ const SessionScreen: React.FC = () => {
 
     return () => {
       subscription.remove();
+      clearNudgeTimeout();
     };
-  }, [sessionState.isActive]);
+  }, [sessionState.isActive, aggressiveRemindersActive]);
 
   useEffect(() => {
     if (!sessionState.isActive) {
@@ -171,7 +206,45 @@ const SessionScreen: React.FC = () => {
     navigateToHome();
   };
 
+  const handleEarlyExitRequest = () => {
+    setPendingReason('Lost focus');
+    setShowEarlyExitPrompt(true);
+  };
+
+  const confirmEarlyExit = (reason: string) => {
+    setPendingReason(reason);
+    setShowEarlyExitPrompt(false);
+    animateSessionDismissal();
+  };
+
+  const cancelEarlyExit = () => {
+    setShowEarlyExitPrompt(false);
+  };
+
   const finalizeEndSession = () => {
+    const actualDurationSeconds =
+      sessionState.duration * 60 - remainingRef.current;
+    const endType = hardModeActive ? 'gave_up' : 'cancelled';
+    const reason = hardModeActive
+      ? pendingReason || 'Ended early'
+      : 'Ended early';
+
+    void addSession({
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      duration: sessionState.duration,
+      completed: false,
+      endType,
+      endReason: reason,
+      actualDurationSeconds,
+      audioSettings: {
+        nature: sessionState.audioSettings.natureEnabled,
+        music: sessionState.audioSettings.musicEnabled,
+      },
+    }).catch(error => {
+      console.error('Failed to store early exit session:', error);
+    });
+
     stopAudio().catch(error => {
       console.error('Failed to stop audio on session end:', error);
     });
@@ -243,7 +316,12 @@ const SessionScreen: React.FC = () => {
         event.translationY > ANIMATION_CONFIG.session.swipeThreshold ||
         event.velocityY > 1200;
       if (shouldDismiss) {
-        animateSessionDismissal();
+        if (hardModeActive) {
+          resetDismissState(event.velocityY);
+          runOnJS(handleEarlyExitRequest)();
+        } else {
+          animateSessionDismissal();
+        }
       } else {
         resetDismissState(event.velocityY);
       }
@@ -299,50 +377,106 @@ const SessionScreen: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  return (
-    <GestureDetector gesture={panGesture}>
-      <View style={styles.root}>
-        <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="none" />
-        <Animated.View style={[styles.cardWrapper, animatedStyle]}>
-          <View style={styles.edgeSoftener} pointerEvents="none" />
-          <View style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
+  const earlyExitPrompt = (
+    <Modal
+      animationType="fade"
+      transparent
+      visible={showEarlyExitPrompt}
+      onRequestClose={cancelEarlyExit}
+    >
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>Hard mode</Text>
+          <Text style={styles.modalSubtitle}>
+            Choose why you are ending early. We will track it separately.
+          </Text>
+          <View style={styles.reasonList}>
+            {earlyExitReasons.map(reason => (
               <Pressable
-                style={styles.content}
-                onPress={() => setShowTimer(!showTimer)}
+                key={reason}
+                style={[
+                  styles.reasonPill,
+                  pendingReason === reason && styles.reasonPillSelected,
+                ]}
+                onPress={() => setPendingReason(reason)}
               >
-                <Animated.View
-                  style={[styles.pulse, pulseStyle]}
-                  pointerEvents="none"
-                />
-                <Animated.View
-                  style={[styles.glow, glowStyle]}
-                  pointerEvents="none"
-                />
-                <View style={styles.progressContainer}>
-                  <ProgressRing
-                    progress={progress}
-                    size={ANIMATION_CONFIG.session.progressRingSize}
-                    strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
-                    color={theme.colors.primary}
-                  />
-                  {showTimer && (
-                    <Text style={styles.timerText}>
-                      {formatTime(timeRemaining)}
-                    </Text>
-                  )}
-                </View>
-
-                <Text style={styles.hint}>Swipe down to end</Text>
+                <Text
+                  style={[
+                    styles.reasonText,
+                    pendingReason === reason && styles.reasonTextSelected,
+                  ]}
+                >
+                  {reason}
+                </Text>
               </Pressable>
-            </SafeAreaView>
-            {showCompletion && (
-              <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
-            )}
+            ))}
           </View>
-        </Animated.View>
+          <View style={styles.modalActions}>
+            <Pressable
+              style={[styles.modalButton, styles.modalConfirm]}
+              onPress={() => confirmEarlyExit(pendingReason)}
+            >
+              <Text style={styles.modalConfirmText}>End early</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.modalButton, styles.modalCancel]}
+              onPress={cancelEarlyExit}
+            >
+              <Text style={styles.modalCancelText}>Continue session</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
-    </GestureDetector>
+    </Modal>
+  );
+
+  return (
+    <>
+      {earlyExitPrompt}
+      <GestureDetector gesture={panGesture}>
+        <View style={styles.root}>
+          <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="none" />
+          <Animated.View style={[styles.cardWrapper, animatedStyle]}>
+            <View style={styles.edgeSoftener} pointerEvents="none" />
+            <View style={styles.container}>
+              <SafeAreaView style={styles.safeArea}>
+                <Pressable
+                  style={styles.content}
+                  onPress={() => setShowTimer(!showTimer)}
+                >
+                  <Animated.View
+                    style={[styles.pulse, pulseStyle]}
+                    pointerEvents="none"
+                  />
+                  <Animated.View
+                    style={[styles.glow, glowStyle]}
+                    pointerEvents="none"
+                  />
+                  <View style={styles.progressContainer}>
+                    <ProgressRing
+                      progress={progress}
+                      size={ANIMATION_CONFIG.session.progressRingSize}
+                      strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
+                      color={theme.colors.primary}
+                    />
+                    {showTimer && (
+                      <Text style={styles.timerText}>
+                        {formatTime(timeRemaining)}
+                      </Text>
+                    )}
+                  </View>
+
+                  <Text style={styles.hint}>Swipe down to end</Text>
+                </Pressable>
+              </SafeAreaView>
+              {showCompletion && (
+                <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
+              )}
+            </View>
+          </Animated.View>
+        </View>
+      </GestureDetector>
+    </>
   );
 };
 
@@ -421,6 +555,81 @@ const styles = StyleSheet.create({
     bottom: 40,
     fontSize: 14,
     color: theme.colors.textSecondary,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: '#0f1420',
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(78,205,196,0.3)',
+  },
+  modalTitle: {
+    color: theme.colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  modalSubtitle: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  reasonList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  reasonPill: {
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+    borderColor: theme.colors.textSecondary,
+  },
+  reasonPillSelected: {
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(78,205,196,0.15)',
+  },
+  reasonText: {
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+  },
+  reasonTextSelected: {
+    color: theme.colors.primary,
+    fontWeight: '700',
+  },
+  modalActions: {
+    gap: theme.spacing.sm,
+  },
+  modalButton: {
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.sm,
+    alignItems: 'center',
+  },
+  modalConfirm: {
+    backgroundColor: theme.colors.primary,
+  },
+  modalCancel: {
+    borderWidth: 1,
+    borderColor: theme.colors.textSecondary,
+  },
+  modalConfirmText: {
+    color: theme.colors.background,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  modalCancelText: {
+    color: theme.colors.text,
+    fontWeight: '500',
+    fontSize: 16,
   },
 });
 

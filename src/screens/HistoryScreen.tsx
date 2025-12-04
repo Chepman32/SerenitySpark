@@ -5,10 +5,13 @@ import { theme } from '../constants/theme';
 import { useHistory } from '../contexts/HistoryContext';
 import { useApp } from '../contexts/AppContext';
 import { SessionRecord } from '../types';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import PremiumCallout from '../components/PremiumCallout';
 
 const HistoryScreen: React.FC = () => {
   const { sessions, stats } = useHistory();
   const { navigateToHome } = useApp();
+  const { hasFeature } = useSubscription();
 
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp);
@@ -54,7 +57,7 @@ const HistoryScreen: React.FC = () => {
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{stats.totalSessions}</Text>
-          <Text style={styles.statLabel}>Sessions</Text>
+          <Text style={styles.statLabel}>Sessions Logged</Text>
         </View>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{stats.totalMinutes}</Text>
@@ -65,6 +68,51 @@ const HistoryScreen: React.FC = () => {
           <Text style={styles.statLabel}>Day Streak</Text>
         </View>
       </View>
+
+      {hasFeature('advancedAnalytics') ? (
+        <View style={styles.analyticsContainer}>
+          <View style={styles.analyticsRow}>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>
+                {(stats.completionRate * 100).toFixed(0)}%
+              </Text>
+              <Text style={styles.analyticsLabel}>Reached the end</Text>
+            </View>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>{stats.gaveUpSessions}</Text>
+              <Text style={styles.analyticsLabel}>Gave up</Text>
+            </View>
+          </View>
+          <View style={styles.analyticsRow}>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>{stats.weeklyMinutes}</Text>
+              <Text style={styles.analyticsLabel}>Last 7 days (min)</Text>
+            </View>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>{stats.monthlyMinutes}</Text>
+              <Text style={styles.analyticsLabel}>Last 30 days (min)</Text>
+            </View>
+          </View>
+          <View style={styles.analyticsRow}>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>{stats.averageDuration}m</Text>
+              <Text style={styles.analyticsLabel}>Avg. session length</Text>
+            </View>
+            <View style={styles.analyticsCard}>
+              <Text style={styles.analyticsValue}>{stats.bestStreak}</Text>
+              <Text style={styles.analyticsLabel}>Best streak</Text>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.premiumWrapper}>
+          <PremiumCallout
+            title="Advanced analytics"
+            description="Unlock completion rate, weekly/monthly trends, and richer reports with Premium."
+            onPress={() => null}
+          />
+        </View>
+      )}
 
       <FlatList
         data={sessions}
@@ -122,6 +170,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.textSecondary,
     marginTop: 4,
+  },
+  analyticsContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  analyticsRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  analyticsCard: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.md,
+    gap: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(78,205,196,0.3)',
+  },
+  analyticsValue: {
+    color: theme.colors.primary,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  analyticsLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+  },
+  premiumWrapper: {
+    paddingHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
   listContent: {
     padding: theme.spacing.lg,

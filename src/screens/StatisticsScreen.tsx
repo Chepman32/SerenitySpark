@@ -52,14 +52,12 @@ const StatisticsScreen: React.FC = () => {
             translateY.value = withTiming(screenHeight, { duration: 220 }, finished => {
               if (finished) {
                 runOnJS(navigateToHome)();
-                translateY.value = 0;
               }
             });
           } else if (event.translationY < -threshold) {
             translateY.value = withTiming(-screenHeight, { duration: 220 }, finished => {
               if (finished) {
                 runOnJS(navigateToHome)();
-                translateY.value = 0;
               }
             });
           } else {

@@ -158,7 +158,6 @@ const HomeScreen: React.FC = () => {
         translateY.value = withTiming(target, { duration: 220 }, finished => {
           if (finished) {
             runOnJS(handleSwipeNavigate)(direction!);
-            translateY.value = 0;
           }
         });
       } else {

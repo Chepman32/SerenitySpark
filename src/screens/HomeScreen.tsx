@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -69,6 +70,8 @@ const getNextBackgroundIndex = (excludeIndex: number | null): number => {
   }
   return nextIndex;
 };
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const HomeScreen: React.FC = () => {
   const { navigateToSession, navigateToSettings, navigateToStatistics } = useApp();
@@ -143,19 +146,37 @@ const HomeScreen: React.FC = () => {
     .onEnd(event => {
       'worklet';
       const threshold = 80;
+      let direction: 'up' | 'down' | null = null;
       if (event.translationY < -threshold) {
-        runOnJS(handleSwipeNavigate)('up');
+        direction = 'up';
       } else if (event.translationY > threshold) {
-        runOnJS(handleSwipeNavigate)('down');
+        direction = 'down';
       }
-      translateY.value = withTiming(0, { duration: 200 });
+
+      if (direction) {
+        const target = direction === 'down' ? SCREEN_HEIGHT : -SCREEN_HEIGHT;
+        translateY.value = withTiming(target, { duration: 220 }, finished => {
+          if (finished) {
+            runOnJS(handleSwipeNavigate)(direction!);
+            translateY.value = 0;
+          }
+        });
+      } else {
+        translateY.value = withTiming(0, { duration: 200 });
+      }
     });
 
   const animatedStyle = useAnimatedStyle(() => {
-    const clamped = Math.max(-120, Math.min(120, translateY.value));
+    const distance = translateY.value;
+    const fadeDistance = SCREEN_HEIGHT / 2;
     return {
-      transform: [{ translateY: clamped }],
-      opacity: interpolate(Math.abs(clamped), [0, 120], [1, 0.9]),
+      transform: [{ translateY: distance }],
+      opacity: interpolate(
+        Math.abs(distance),
+        [0, fadeDistance],
+        [1, 0.85],
+        'clamp',
+      ),
     };
   });
 

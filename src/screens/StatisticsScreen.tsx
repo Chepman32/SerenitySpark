@@ -1,6 +1,21 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { theme } from '../constants/theme';
 import { useHistory } from '../contexts/HistoryContext';
 import { useApp } from '../contexts/AppContext';
@@ -20,51 +35,102 @@ const StatisticBlock: React.FC<{
 const StatisticsScreen: React.FC = () => {
   const { stats } = useHistory();
   const { navigateToHome } = useApp();
+  const translateY = useSharedValue(0);
+  const screenHeight = Dimensions.get('window').height;
+
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .onUpdate(event => {
+          'worklet';
+          translateY.value = event.translationY;
+        })
+        .onEnd(event => {
+          'worklet';
+          const threshold = 80;
+          if (event.translationY > threshold) {
+            translateY.value = withTiming(screenHeight, { duration: 220 }, finished => {
+              if (finished) {
+                runOnJS(navigateToHome)();
+                translateY.value = 0;
+              }
+            });
+          } else if (event.translationY < -threshold) {
+            translateY.value = withTiming(-screenHeight, { duration: 220 }, finished => {
+              if (finished) {
+                runOnJS(navigateToHome)();
+                translateY.value = 0;
+              }
+            });
+          } else {
+            translateY.value = withTiming(0, { duration: 200 });
+          }
+        }),
+    [navigateToHome, screenHeight, translateY],
+  );
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const distance = translateY.value;
+    const fadeDistance = screenHeight / 2;
+    return {
+      transform: [{ translateY: distance }],
+      opacity: interpolate(
+        Math.abs(distance),
+        [0, fadeDistance],
+        [1, 0.85],
+        'clamp',
+      ),
+    };
+  });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={navigateToHome}>
-          <Text style={styles.backButton}>↓ Close</Text>
-        </Pressable>
-        <Text style={styles.title}>Statistics</Text>
-      </View>
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[styles.container, animatedStyle]}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <Pressable onPress={navigateToHome}>
+              <Text style={styles.backButton}>↓ Close</Text>
+            </Pressable>
+            <Text style={styles.title}>Statistics</Text>
+          </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.grid}>
-          <StatisticBlock
-            label="Total Minutes"
-            value={`${stats.totalMinutes}`}
-            sub={`${stats.totalSessions} sessions`}
-          />
-          <StatisticBlock
-            label="Completion Rate"
-            value={`${Math.round(stats.completionRate * 100)}%`}
-            sub={`${stats.completedSessions} completed`}
-          />
-          <StatisticBlock
-            label="Weekly Focus"
-            value={`${stats.weeklyMinutes}m`}
-            sub="Last 7 days"
-          />
-          <StatisticBlock
-            label="Monthly Focus"
-            value={`${stats.monthlyMinutes}m`}
-            sub="Last 30 days"
-          />
-          <StatisticBlock
-            label="Avg. Length"
-            value={`${stats.averageDuration}m`}
-            sub="Per session"
-          />
-          <StatisticBlock
-            label="Best Streak"
-            value={`${stats.bestStreak} days`}
-            sub={`Current: ${stats.currentStreak}`}
-          />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.grid}>
+              <StatisticBlock
+                label="Total Minutes"
+                value={`${stats.totalMinutes}`}
+                sub={`${stats.totalSessions} sessions`}
+              />
+              <StatisticBlock
+                label="Completion Rate"
+                value={`${Math.round(stats.completionRate * 100)}%`}
+                sub={`${stats.completedSessions} completed`}
+              />
+              <StatisticBlock
+                label="Weekly Focus"
+                value={`${stats.weeklyMinutes}m`}
+                sub="Last 7 days"
+              />
+              <StatisticBlock
+                label="Monthly Focus"
+                value={`${stats.monthlyMinutes}m`}
+                sub="Last 30 days"
+              />
+              <StatisticBlock
+                label="Avg. Length"
+                value={`${stats.averageDuration}m`}
+                sub="Per session"
+              />
+              <StatisticBlock
+                label="Best Streak"
+                value={`${stats.bestStreak} days`}
+                sub={`Current: ${stats.currentStreak}`}
+              />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

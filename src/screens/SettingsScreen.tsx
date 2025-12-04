@@ -1,7 +1,17 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView as GHScrollView,
+} from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,6 +31,14 @@ const SettingsScreen: React.FC = () => {
   const { navigateToHome } = useApp();
   const { hasFeature, markPremium, isPremium } = useSubscription();
   const translateY = useSharedValue(0);
+  const screenHeight = Dimensions.get('window').height;
+  const panRef = React.useRef(null);
+  const scrollY = useSharedValue(0);
+  const onScroll = React.useCallback(event => {
+    scrollY.value = event.nativeEvent.contentOffset.y;
+  }, []);
+
+  const AnimatedScrollView = Animated.ScrollView;
 
   const natureTracks = AudioService.getAvailableTracks('nature');
   const musicTracks = AudioService.getAvailableTracks('music');
@@ -59,26 +77,54 @@ const SettingsScreen: React.FC = () => {
   const gesture = useMemo(
     () =>
       Gesture.Pan()
+        .withRef(panRef)
         .onUpdate(event => {
           'worklet';
+          if (scrollY.value > 0 && event.translationY > 0) {
+            translateY.value = 0;
+            return;
+          }
           translateY.value = event.translationY;
         })
         .onEnd(event => {
           'worklet';
           const threshold = 80;
-          if (event.translationY > threshold) {
-            runOnJS(navigateToHome)();
+          if (scrollY.value > 0) {
+            translateY.value = withTiming(0, { duration: 200 });
+            return;
           }
-          translateY.value = withTiming(0, { duration: 200 });
+          if (event.translationY > threshold) {
+            translateY.value = withTiming(screenHeight, { duration: 220 }, finished => {
+              if (finished) {
+                runOnJS(navigateToHome)();
+                translateY.value = 0;
+              }
+            });
+          } else if (event.translationY < -threshold) {
+            translateY.value = withTiming(-screenHeight, { duration: 220 }, finished => {
+              if (finished) {
+                runOnJS(navigateToHome)();
+                translateY.value = 0;
+              }
+            });
+          } else {
+            translateY.value = withTiming(0, { duration: 200 });
+          }
         }),
-    [navigateToHome, translateY],
+    [navigateToHome, translateY, screenHeight, scrollY],
   );
 
   const animatedStyle = useAnimatedStyle(() => {
-    const clamped = Math.max(-60, Math.min(120, translateY.value));
+    const distance = translateY.value;
+    const fadeDistance = screenHeight / 2;
     return {
-      transform: [{ translateY: clamped }],
-      opacity: interpolate(Math.abs(clamped), [0, 120], [1, 0.9]),
+      transform: [{ translateY: distance }],
+      opacity: interpolate(
+        Math.abs(distance),
+        [0, fadeDistance],
+        [1, 0.85],
+        'clamp',
+      ),
     };
   });
 
@@ -93,10 +139,13 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.title}>Settings</Text>
           </View>
 
-          <ScrollView
+          <GHScrollView
             style={styles.scroll}
             contentContainerStyle={styles.content}
             contentInsetAdjustmentBehavior="automatic"
+            simultaneousHandlers={panRef}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
           >
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Audio Preferences</Text>
@@ -289,7 +338,7 @@ const SettingsScreen: React.FC = () => {
                 Privacy: All your data stays on your device.
               </Text>
             </View>
-          </ScrollView>
+          </GHScrollView>
         </SafeAreaView>
       </Animated.View>
     </GestureDetector>

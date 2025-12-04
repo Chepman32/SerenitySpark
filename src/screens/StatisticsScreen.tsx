@@ -3,12 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView as GHScrollView,
+} from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -37,10 +40,12 @@ const StatisticsScreen: React.FC = () => {
   const { navigateToHome } = useApp();
   const translateY = useSharedValue(0);
   const screenHeight = Dimensions.get('window').height;
+  const panRef = React.useRef(null);
 
   const gesture = useMemo(
     () =>
       Gesture.Pan()
+        .withRef(panRef)
         .onUpdate(event => {
           'worklet';
           translateY.value = event.translationY;
@@ -92,7 +97,10 @@ const StatisticsScreen: React.FC = () => {
             <Text style={styles.title}>Statistics</Text>
           </View>
 
-          <ScrollView contentContainerStyle={styles.content}>
+          <GHScrollView
+            contentContainerStyle={styles.content}
+            simultaneousHandlers={panRef}
+          >
             <View style={styles.grid}>
               <StatisticBlock
                 label="Total Minutes"
@@ -125,7 +133,7 @@ const StatisticsScreen: React.FC = () => {
                 sub={`Current: ${stats.currentStreak}`}
               />
             </View>
-          </ScrollView>
+          </GHScrollView>
         </SafeAreaView>
       </Animated.View>
     </GestureDetector>

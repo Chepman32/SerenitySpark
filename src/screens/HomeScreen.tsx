@@ -30,6 +30,7 @@ import { useSubscription } from '../contexts/SubscriptionContext';
 import { buildFocusAdvice, FocusAdvice } from '../services/FocusAdvisor';
 import NotificationService from '../services/NotificationService';
 import PremiumCallout from '../components/PremiumCallout';
+import PremiumPaywall from '../components/PremiumPaywall';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
@@ -313,27 +314,11 @@ const HomeScreen: React.FC = () => {
   );
 
   const premiumModal = (
-    <Modal
-      animationType="fade"
-      transparent
+    <PremiumPaywall
       visible={showPremiumPrompt}
-      onRequestClose={() => setShowPremiumPrompt(false)}
-    >
-      <View style={styles.permissionModalBackdrop}>
-        <View style={styles.permissionModal}>
-          <Text style={styles.permissionModalTitle}>Premium required</Text>
-          <Text style={styles.permissionModalMessage}>
-            Unlock SerenitySpark Premium to enable Focus Advisor, hard mode, and distraction blocking reminders.
-          </Text>
-          <Pressable
-            style={[styles.permissionButton, styles.permissionPrimaryButton]}
-            onPress={() => setShowPremiumPrompt(false)}
-          >
-            <Text style={styles.permissionPrimaryText}>Got it</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
+      onClose={() => setShowPremiumPrompt(false)}
+      onPrimaryAction={() => setShowPremiumPrompt(false)}
+    />
   );
 
   const handleDismissOnboarding = () => {

@@ -53,13 +53,7 @@ const StatisticsScreen: React.FC = () => {
         .onEnd(event => {
           'worklet';
           const threshold = 80;
-          if (event.translationY > threshold) {
-            translateY.value = withTiming(screenHeight, { duration: 220 }, finished => {
-              if (finished) {
-                runOnJS(navigateToHome)();
-              }
-            });
-          } else if (event.translationY < -threshold) {
+          if (event.translationY < -threshold) {
             translateY.value = withTiming(-screenHeight, { duration: 220 }, finished => {
               if (finished) {
                 runOnJS(navigateToHome)();

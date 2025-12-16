@@ -26,11 +26,10 @@ import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useHistory } from '../contexts/HistoryContext';
-import { useSubscription } from '../contexts/SubscriptionContext';
+
 import { buildFocusAdvice, FocusAdvice } from '../services/FocusAdvisor';
 import NotificationService from '../services/NotificationService';
-import PremiumCallout from '../components/PremiumCallout';
-import PremiumPaywall from '../components/PremiumPaywall';
+
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
@@ -75,12 +74,11 @@ const getNextBackgroundIndex = (excludeIndex: number | null): number => {
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const HomeScreen: React.FC = () => {
-  const { navigateToSession, navigateToSettings, navigateToStatistics } = useApp();
+  const { navigateToSession, navigateToSettings, navigateToStatistics } =
+    useApp();
   const { startSession } = useSession();
   const { settings, updateSettings, isLoaded } = useSettings();
   const { sessions } = useHistory();
-  const { hasFeature } = useSubscription();
-
   const [selectedDuration, setSelectedDuration] = useState(
     settings.lastSelectedDuration,
   );
@@ -88,10 +86,13 @@ const HomeScreen: React.FC = () => {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [backgroundIndex, setBackgroundIndex] = useState<number | null>(null);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const [pendingSessionDuration, setPendingSessionDuration] = useState<number | null>(null);
-  const [shouldShowPermissionModalNext, setShouldShowPermissionModalNext] = useState(false);
+  const [pendingSessionDuration, setPendingSessionDuration] = useState<
+    number | null
+  >(null);
+  const [shouldShowPermissionModalNext, setShouldShowPermissionModalNext] =
+    useState(false);
   const [focusAdvice, setFocusAdvice] = useState<FocusAdvice | null>(null);
-  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
+
   const hasInitializedBackground = useRef(false);
   const translateY = useSharedValue(0);
 
@@ -121,15 +122,13 @@ const HomeScreen: React.FC = () => {
   }, [isLoaded, selectNewBackground, settings.lastBackgroundImageIndex]);
 
   useEffect(() => {
-    const optimizerEnabled =
-      hasFeature('focusOptimizer') && settings.focusAdvisorEnabled;
-    if (!optimizerEnabled) {
+    if (!settings.focusAdvisorEnabled) {
       setFocusAdvice(null);
       return;
     }
     const advice = buildFocusAdvice(sessions);
     setFocusAdvice(advice);
-  }, [sessions, settings.focusAdvisorEnabled, hasFeature]);
+  }, [sessions, settings.focusAdvisorEnabled]);
 
   const handleSwipeNavigate = (direction: 'up' | 'down') => {
     if (direction === 'up') {
@@ -186,7 +185,6 @@ const HomeScreen: React.FC = () => {
 
   const handleApplyAdvice = () => {
     if (!focusAdvice) {
-      setShowPremiumPrompt(true);
       return;
     }
     setSelectedDuration(focusAdvice.focusMinutes);
@@ -292,17 +290,24 @@ const HomeScreen: React.FC = () => {
         <View style={styles.permissionModal}>
           <Text style={styles.permissionModalTitle}>Enable notifications</Text>
           <Text style={styles.permissionModalMessage}>
-            Notifications help us remind you when a session is still running. Grant access in settings, or choose Cancel to continue without reminders.
+            Notifications help us remind you when a session is still running.
+            Grant access in settings, or choose Cancel to continue without
+            reminders.
           </Text>
           <View style={styles.permissionModalActions}>
             <Pressable
               style={[styles.permissionButton, styles.permissionPrimaryButton]}
               onPress={handlePermissionModalGrant}
             >
-              <Text style={styles.permissionPrimaryText}>Grant Permissions</Text>
+              <Text style={styles.permissionPrimaryText}>
+                Grant Permissions
+              </Text>
             </Pressable>
             <Pressable
-              style={[styles.permissionButton, styles.permissionSecondaryButton]}
+              style={[
+                styles.permissionButton,
+                styles.permissionSecondaryButton,
+              ]}
               onPress={handlePermissionModalCancel}
             >
               <Text style={styles.permissionSecondaryText}>Cancel</Text>
@@ -311,14 +316,6 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
     </Modal>
-  );
-
-  const premiumModal = (
-    <PremiumPaywall
-      visible={showPremiumPrompt}
-      onClose={() => setShowPremiumPrompt(false)}
-      onPrimaryAction={() => setShowPremiumPrompt(false)}
-    />
   );
 
   const handleDismissOnboarding = () => {
@@ -331,32 +328,23 @@ const HomeScreen: React.FC = () => {
         <OnboardingOverlay onDismiss={handleDismissOnboarding} />
       )}
       <View style={styles.content}>
-        {settings.focusAdvisorEnabled && (
-          hasFeature('focusOptimizer') ? (
-            focusAdvice && (
-              <View style={styles.adviceCard}>
-                <View style={styles.adviceHeader}>
-                  <Text style={styles.adviceLabel}>Suggested by Focus Advisor</Text>
-                  <Text style={styles.adviceConfidence}>
-                    {Math.round(focusAdvice.confidence * 100)}% confidence
-                  </Text>
-                </View>
-                <Text style={styles.adviceTitle}>
-                  {focusAdvice.focusMinutes} min focus · {focusAdvice.breakMinutes} min break
-                </Text>
-                <Text style={styles.adviceRationale}>{focusAdvice.rationale}</Text>
-                <Pressable style={styles.applyButton} onPress={handleApplyAdvice}>
-                  <Text style={styles.applyButtonText}>Apply suggestion</Text>
-                </Pressable>
-              </View>
-            )
-          ) : (
-            <PremiumCallout
-              title="Let AI pick your perfect focus length"
-              description="Premium adapts session length based on your history, so you fail less often."
-              onPress={() => setShowPremiumPrompt(true)}
-            />
-          )
+        {settings.focusAdvisorEnabled && focusAdvice && (
+          <View style={styles.adviceCard}>
+            <View style={styles.adviceHeader}>
+              <Text style={styles.adviceLabel}>Suggested by Focus Advisor</Text>
+              <Text style={styles.adviceConfidence}>
+                {Math.round(focusAdvice.confidence * 100)}% confidence
+              </Text>
+            </View>
+            <Text style={styles.adviceTitle}>
+              {focusAdvice.focusMinutes} min focus · {focusAdvice.breakMinutes}{' '}
+              min break
+            </Text>
+            <Text style={styles.adviceRationale}>{focusAdvice.rationale}</Text>
+            <Pressable style={styles.applyButton} onPress={handleApplyAdvice}>
+              <Text style={styles.applyButtonText}>Apply suggestion</Text>
+            </Pressable>
+          </View>
         )}
         <DurationCarousel
           onDurationSelect={handleDurationSelect}
@@ -392,7 +380,6 @@ const HomeScreen: React.FC = () => {
     return (
       <>
         {permissionModal}
-        {premiumModal}
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.background, animatedStyle]}>
             {content}
@@ -405,7 +392,6 @@ const HomeScreen: React.FC = () => {
   return (
     <>
       {permissionModal}
-      {premiumModal}
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.background, animatedStyle]}>
           <ImageBackground

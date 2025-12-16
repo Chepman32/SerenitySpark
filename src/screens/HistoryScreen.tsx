@@ -5,13 +5,9 @@ import { theme } from '../constants/theme';
 import { useHistory } from '../contexts/HistoryContext';
 import { useApp } from '../contexts/AppContext';
 import { SessionRecord } from '../types';
-import { useSubscription } from '../contexts/SubscriptionContext';
-import PremiumCallout from '../components/PremiumCallout';
-
 const HistoryScreen: React.FC = () => {
   const { sessions, stats } = useHistory();
   const { navigateToHome } = useApp();
-  const { hasFeature } = useSubscription();
 
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp);
@@ -69,50 +65,40 @@ const HistoryScreen: React.FC = () => {
         </View>
       </View>
 
-      {hasFeature('advancedAnalytics') ? (
-        <View style={styles.analyticsContainer}>
-          <View style={styles.analyticsRow}>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>
-                {(stats.completionRate * 100).toFixed(0)}%
-              </Text>
-              <Text style={styles.analyticsLabel}>Reached the end</Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>{stats.gaveUpSessions}</Text>
-              <Text style={styles.analyticsLabel}>Gave up</Text>
-            </View>
+      <View style={styles.analyticsContainer}>
+        <View style={styles.analyticsRow}>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>
+              {(stats.completionRate * 100).toFixed(0)}%
+            </Text>
+            <Text style={styles.analyticsLabel}>Reached the end</Text>
           </View>
-          <View style={styles.analyticsRow}>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>{stats.weeklyMinutes}</Text>
-              <Text style={styles.analyticsLabel}>Last 7 days (min)</Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>{stats.monthlyMinutes}</Text>
-              <Text style={styles.analyticsLabel}>Last 30 days (min)</Text>
-            </View>
-          </View>
-          <View style={styles.analyticsRow}>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>{stats.averageDuration}m</Text>
-              <Text style={styles.analyticsLabel}>Avg. session length</Text>
-            </View>
-            <View style={styles.analyticsCard}>
-              <Text style={styles.analyticsValue}>{stats.bestStreak}</Text>
-              <Text style={styles.analyticsLabel}>Best streak</Text>
-            </View>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>{stats.gaveUpSessions}</Text>
+            <Text style={styles.analyticsLabel}>Gave up</Text>
           </View>
         </View>
-      ) : (
-        <View style={styles.premiumWrapper}>
-          <PremiumCallout
-            title="Advanced analytics"
-            description="Unlock completion rate, weekly/monthly trends, and richer reports with Premium."
-            onPress={() => null}
-          />
+        <View style={styles.analyticsRow}>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>{stats.weeklyMinutes}</Text>
+            <Text style={styles.analyticsLabel}>Last 7 days (min)</Text>
+          </View>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>{stats.monthlyMinutes}</Text>
+            <Text style={styles.analyticsLabel}>Last 30 days (min)</Text>
+          </View>
         </View>
-      )}
+        <View style={styles.analyticsRow}>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>{stats.averageDuration}m</Text>
+            <Text style={styles.analyticsLabel}>Avg. session length</Text>
+          </View>
+          <View style={styles.analyticsCard}>
+            <Text style={styles.analyticsValue}>{stats.bestStreak}</Text>
+            <Text style={styles.analyticsLabel}>Best streak</Text>
+          </View>
+        </View>
+      </View>
 
       <FlatList
         data={sessions}
@@ -197,10 +183,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: 13,
   },
-  premiumWrapper: {
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-  },
+
   listContent: {
     padding: theme.spacing.lg,
   },

@@ -1,11 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Gesture,
@@ -23,13 +17,11 @@ import { theme } from '../constants/theme';
 import { useSettings } from '../contexts/SettingsContext';
 import { useApp } from '../contexts/AppContext';
 import AudioService from '../services/AudioService';
-import { useSubscription } from '../contexts/SubscriptionContext';
-import PremiumCallout from '../components/PremiumCallout';
 
 const SettingsScreen: React.FC = () => {
   const { settings, updateSettings } = useSettings();
   const { navigateToHome } = useApp();
-  const { hasFeature, markPremium, isPremium } = useSubscription();
+
   const translateY = useSharedValue(0);
   const screenHeight = Dimensions.get('window').height;
   const panRef = React.useRef(null);
@@ -52,25 +44,16 @@ const SettingsScreen: React.FC = () => {
   };
 
   const toggleHardMode = () => {
-    if (!hasFeature('hardMode')) {
-      return;
-    }
     updateSettings({ hardModeEnabled: !settings.hardModeEnabled });
   };
 
   const toggleAggressiveReminders = () => {
-    if (!hasFeature('distractionBlocking')) {
-      return;
-    }
     updateSettings({
       aggressiveRemindersEnabled: !settings.aggressiveRemindersEnabled,
     });
   };
 
   const toggleFocusAdvisor = () => {
-    if (!hasFeature('focusOptimizer')) {
-      return;
-    }
     updateSettings({ focusAdvisorEnabled: !settings.focusAdvisorEnabled });
   };
 
@@ -94,17 +77,25 @@ const SettingsScreen: React.FC = () => {
             return;
           }
           if (event.translationY > threshold) {
-            translateY.value = withTiming(screenHeight, { duration: 220 }, finished => {
-              if (finished) {
-                runOnJS(navigateToHome)();
-              }
-            });
+            translateY.value = withTiming(
+              screenHeight,
+              { duration: 220 },
+              finished => {
+                if (finished) {
+                  runOnJS(navigateToHome)();
+                }
+              },
+            );
           } else if (event.translationY < -threshold) {
-            translateY.value = withTiming(-screenHeight, { duration: 220 }, finished => {
-              if (finished) {
-                runOnJS(navigateToHome)();
-              }
-            });
+            translateY.value = withTiming(
+              -screenHeight,
+              { duration: 220 },
+              finished => {
+                if (finished) {
+                  runOnJS(navigateToHome)();
+                }
+              },
+            );
           } else {
             translateY.value = withTiming(0, { duration: 200 });
           }
@@ -209,7 +200,6 @@ const SettingsScreen: React.FC = () => {
                 style={[
                   styles.option,
                   settings.hardModeEnabled && styles.optionSelected,
-                  !hasFeature('hardMode') && styles.optionDisabled,
                 ]}
                 onPress={toggleHardMode}
               >
@@ -239,7 +229,6 @@ const SettingsScreen: React.FC = () => {
                 style={[
                   styles.option,
                   settings.aggressiveRemindersEnabled && styles.optionSelected,
-                  !hasFeature('distractionBlocking') && styles.optionDisabled,
                 ]}
                 onPress={toggleAggressiveReminders}
               >
@@ -256,7 +245,7 @@ const SettingsScreen: React.FC = () => {
                     Aggressive reminders
                   </Text>
                   <Text style={styles.optionSubtext} numberOfLines={2}>
-                    Extra nudges when you leave the app mid-session (Premium).
+                    Extra nudges when you leave the app mid-session.
                   </Text>
                 </View>
                 <View style={styles.checkmarkContainer}>
@@ -270,7 +259,6 @@ const SettingsScreen: React.FC = () => {
                 style={[
                   styles.option,
                   settings.focusAdvisorEnabled && styles.optionSelected,
-                  !hasFeature('focusOptimizer') && styles.optionDisabled,
                 ]}
                 onPress={toggleFocusAdvisor}
               >
@@ -294,35 +282,6 @@ const SettingsScreen: React.FC = () => {
                     {settings.focusAdvisorEnabled ? 'On' : 'Off'}
                   </Text>
                 </View>
-              </Pressable>
-              {!hasFeature('hardMode') && (
-                <View style={{ marginTop: theme.spacing.sm }}>
-                  <PremiumCallout
-                    title="Upgrade for protection"
-                    description="Hard mode, distraction blocking nudges, and adaptive durations are Premium."
-                    onPress={() => null}
-                  />
-                </View>
-              )}
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Subscription</Text>
-              <Pressable
-                style={styles.option}
-                onPress={() => {
-                  markPremium();
-                }}
-              >
-                <View>
-                  <Text style={styles.optionText}>
-                    {isPremium ? 'Premium active' : 'Restore Premium (sandbox)'}
-                  </Text>
-                  <Text style={styles.optionSubtext}>
-                    Use after a successful TestFlight purchase to refresh entitlements.
-                  </Text>
-                </View>
-                <Text style={styles.checkmark}>{isPremium ? '✓' : '→'}</Text>
               </Pressable>
             </View>
 
@@ -424,9 +383,6 @@ const styles = StyleSheet.create({
     paddingLeft: theme.spacing.md,
     alignItems: 'flex-end',
     justifyContent: 'center',
-  },
-  optionDisabled: {
-    opacity: 0.6,
   },
   aboutText: {
     fontSize: 14,

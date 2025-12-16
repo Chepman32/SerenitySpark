@@ -29,7 +29,6 @@ import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useHistory } from '../contexts/HistoryContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { useSubscription } from '../contexts/SubscriptionContext';
 import AudioService from '../services/AudioService';
 import NotificationService from '../services/NotificationService';
 
@@ -40,7 +39,6 @@ const SessionScreen: React.FC = () => {
   const { sessionState, endSession } = useSession();
   const { addSession } = useHistory();
   const { settings } = useSettings();
-  const { hasFeature } = useSubscription();
 
   const [timeRemaining, setTimeRemaining] = useState(
     sessionState.duration * 60,
@@ -52,10 +50,8 @@ const SessionScreen: React.FC = () => {
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const remainingRef = useRef(timeRemaining);
   const nudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hardModeActive =
-    hasFeature('hardMode') && settings.hardModeEnabled;
-  const aggressiveRemindersActive =
-    hasFeature('distractionBlocking') && settings.aggressiveRemindersEnabled;
+  const hardModeActive = settings.hardModeEnabled;
+  const aggressiveRemindersActive = settings.aggressiveRemindersEnabled;
   const earlyExitReasons = [
     'Lost focus',
     'Urgent task',
@@ -93,8 +89,10 @@ const SessionScreen: React.FC = () => {
         if (aggressiveRemindersActive) {
           clearNudgeTimeout();
           nudgeTimeoutRef.current = setTimeout(() => {
-            NotificationService.notifySessionRunning(remainingRef.current).catch(
-              error => console.error('Failed to send aggressive reminder:', error),
+            NotificationService.notifySessionRunning(
+              remainingRef.current,
+            ).catch(error =>
+              console.error('Failed to send aggressive reminder:', error),
             );
           }, 45000);
         }
@@ -256,13 +254,10 @@ const SessionScreen: React.FC = () => {
   const animateSessionDismissal = () => {
     'worklet';
     const easing = Easing.bezier(0.22, 0.61, 0.36, 1);
-    dismissProgress.value = withTiming(
-      1,
-      {
-        duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
-        easing,
-      },
-    );
+    dismissProgress.value = withTiming(1, {
+      duration: ANIMATION_CONFIG.session.dismissAnimationDuration,
+      easing,
+    });
     translateY.value = withTiming(
       SCREEN_HEIGHT,
       {
@@ -301,8 +296,7 @@ const SessionScreen: React.FC = () => {
         translateY.value = translation;
         const targetProgress = Math.min(
           Math.max(
-            translation /
-              (ANIMATION_CONFIG.session.swipeThreshold * 1.4),
+            translation / (ANIMATION_CONFIG.session.swipeThreshold * 1.4),
             0,
           ),
           1,
@@ -334,7 +328,11 @@ const SessionScreen: React.FC = () => {
         scale: interpolate(
           dismissProgress.value,
           [0, 0.6, 1],
-          [1, ANIMATION_CONFIG.session.dismissScale.mid, ANIMATION_CONFIG.session.dismissScale.end],
+          [
+            1,
+            ANIMATION_CONFIG.session.dismissScale.mid,
+            ANIMATION_CONFIG.session.dismissScale.end,
+          ],
         ),
       },
       {
@@ -435,7 +433,10 @@ const SessionScreen: React.FC = () => {
       {earlyExitPrompt}
       <GestureDetector gesture={panGesture}>
         <View style={styles.root}>
-          <Animated.View style={[styles.overlay, overlayStyle]} pointerEvents="none" />
+          <Animated.View
+            style={[styles.overlay, overlayStyle]}
+            pointerEvents="none"
+          />
           <Animated.View style={[styles.cardWrapper, animatedStyle]}>
             <View style={styles.edgeSoftener} pointerEvents="none" />
             <View style={styles.container}>
@@ -456,7 +457,9 @@ const SessionScreen: React.FC = () => {
                     <ProgressRing
                       progress={progress}
                       size={ANIMATION_CONFIG.session.progressRingSize}
-                      strokeWidth={ANIMATION_CONFIG.session.progressRingStrokeWidth}
+                      strokeWidth={
+                        ANIMATION_CONFIG.session.progressRingStrokeWidth
+                      }
                       color={theme.colors.primary}
                     />
                     {showTimer && (
@@ -470,7 +473,9 @@ const SessionScreen: React.FC = () => {
                 </Pressable>
               </SafeAreaView>
               {showCompletion && (
-                <CompletionAnimation onComplete={handleCompletionAnimationEnd} />
+                <CompletionAnimation
+                  onComplete={handleCompletionAnimationEnd}
+                />
               )}
             </View>
           </Animated.View>

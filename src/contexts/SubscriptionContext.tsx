@@ -49,17 +49,30 @@ const computeEntitlements = (products: string[]) => {
   return entitlements;
 };
 
+// All features are now free - no premium/paywall
+const ALL_FEATURES_ENABLED: Record<PremiumFeature, boolean> = {
+  focusOptimizer: true,
+  distractionBlocking: true,
+  hardMode: true,
+  advancedAnalytics: true,
+  premiumThemes: true,
+  liveActivities: true,
+  backups: true,
+  reports: true,
+  soundPacks: true,
+};
+
 export const SubscriptionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [state, setState] = useState<SubscriptionState>({
-    isPremium: false,
-    activeProducts: [],
-    entitlements: computeEntitlements([]),
+    isPremium: true, // Always premium - app is free
+    activeProducts: ['serenity.premium'],
+    entitlements: ALL_FEATURES_ENABLED,
     packs: {
-      themePack: false,
-      focusSoundsPack: false,
-      deepWorkPack: false,
+      themePack: true,
+      focusSoundsPack: true,
+      deepWorkPack: true,
     },
     lastSynced: undefined,
   });
@@ -109,7 +122,8 @@ export const SubscriptionProvider: React.FC<{
       const entitlements = computeEntitlements(products);
       const next: SubscriptionState = {
         ...state,
-        isPremium: entitlements.focusOptimizer || entitlements.advancedAnalytics,
+        isPremium:
+          entitlements.focusOptimizer || entitlements.advancedAnalytics,
         activeProducts: products,
         entitlements,
         packs: {
@@ -142,15 +156,10 @@ export const SubscriptionProvider: React.FC<{
     await persist(base);
   }, []);
 
-  const hasFeature = useCallback(
-    (feature: PremiumFeature) => {
-      if (state.entitlements[feature]) {
-        return true;
-      }
-      return state.isPremium;
-    },
-    [state.entitlements, state.isPremium],
-  );
+  // All features are free - always return true
+  const hasFeature = useCallback((_feature: PremiumFeature) => {
+    return true;
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -162,7 +171,14 @@ export const SubscriptionProvider: React.FC<{
       registerPurchase,
       resetSubscription,
     }),
-    [state, loading, hasFeature, markPremium, registerPurchase, resetSubscription],
+    [
+      state,
+      loading,
+      hasFeature,
+      markPremium,
+      registerPurchase,
+      resetSubscription,
+    ],
   );
 
   return (

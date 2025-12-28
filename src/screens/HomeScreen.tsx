@@ -21,6 +21,7 @@ import DurationCarousel from '../components/DurationCarousel';
 import SoundToggle from '../components/SoundToggle';
 import StartButton from '../components/StartButton';
 import OnboardingOverlay from '../components/OnboardingOverlay';
+import SwipeIndicator from '../components/SwipeIndicator';
 import { theme } from '../constants/theme';
 import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
@@ -330,6 +331,9 @@ const HomeScreen: React.FC = () => {
       {!settings.hasSeenOnboarding && (
         <OnboardingOverlay onDismiss={handleDismissOnboarding} />
       )}
+      <View style={styles.swipeIndicatorTop}>
+        <SwipeIndicator direction="up" />
+      </View>
       <View style={styles.content}>
         {settings.focusAdvisorEnabled && focusAdvice && (
           <View style={styles.adviceCard}>
@@ -376,6 +380,9 @@ const HomeScreen: React.FC = () => {
           <StartButton onPress={handleStartSession} />
         </View>
       </View>
+      <View style={styles.swipeIndicatorBottom}>
+        <SwipeIndicator direction="down" />
+      </View>
     </SafeAreaView>
   );
 
@@ -418,6 +425,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(10, 10, 15, 0.7)',
+  },
+  swipeIndicatorTop: {
+    alignItems: 'center',
+    paddingTop: theme.spacing.sm,
+  },
+  swipeIndicatorBottom: {
+    alignItems: 'center',
+    paddingBottom: theme.spacing.sm,
   },
   content: {
     flex: 1,

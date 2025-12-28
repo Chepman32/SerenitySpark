@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Setări", "back": "Înapoi", "language": "Limbă", "theme": "Temă", "sound": "Sunet", "haptics": "Vibrații", "about": "Despre", "version": "SerenitySpark v1.0.0", "description": "Aplicație de meditație bazată pe gesturi.", "privacy": "Confidențialitate: Toate datele rămân pe dispozitiv." },
+  "themes": { "light": "Deschis", "dark": "Întunecat", "solar": "Solar", "mono": "Mono" },
+  "home": { "selectDuration": "Selectează durata", "minutes": "min", "start": "Start", "nature": "Natură", "music": "Muzică" },
+  "session": { "meditation": "Meditație", "swipeToEnd": "Glisează în jos pentru a termina", "completed": "Sesiune completă", "wellDone": "Bravo!" },
+  "history": { "title": "Istoric", "totalSessions": "Total sesiuni", "totalMinutes": "Total minute", "streak": "Serie curentă", "days": "zile", "noSessions": "Nicio sesiune încă" },
+  "common": { "on": "Pornit", "off": "Oprit", "cancel": "Anulează", "confirm": "Confirmă", "save": "Salvează" }
+}

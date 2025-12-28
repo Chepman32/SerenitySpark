@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "הגדרות", "back": "חזרה", "language": "שפה", "theme": "ערכת נושא", "sound": "צליל", "haptics": "רטט", "about": "אודות", "version": "SerenitySpark v1.0.0", "description": "אפליקציית מדיטציה מבוססת מחוות.", "privacy": "פרטיות: כל הנתונים נשארים במכשיר שלך." },
+  "themes": { "light": "בהיר", "dark": "כהה", "solar": "שמשי", "mono": "מונו" },
+  "home": { "selectDuration": "בחר משך", "minutes": "דקות", "start": "התחל", "nature": "טבע", "music": "מוזיקה" },
+  "session": { "meditation": "מדיטציה", "swipeToEnd": "החלק למטה לסיום", "completed": "הפגישה הושלמה", "wellDone": "כל הכבוד!" },
+  "history": { "title": "היסטוריה", "totalSessions": "סה״כ פגישות", "totalMinutes": "סה״כ דקות", "streak": "רצף נוכחי", "days": "ימים", "noSessions": "אין עדיין פגישות" },
+  "common": { "on": "פעיל", "off": "כבוי", "cancel": "ביטול", "confirm": "אישור", "save": "שמור" }
+}

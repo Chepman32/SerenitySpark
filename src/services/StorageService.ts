@@ -23,6 +23,9 @@ const DEFAULT_SETTINGS: UserSettings = {
   aggressiveRemindersEnabled: false,
   focusAdvisorEnabled: true,
   premiumTheme: 'default',
+  theme: 'dark',
+  soundEnabled: true,
+  hapticsEnabled: true,
 };
 
 const PREMIUM_FEATURES: PremiumFeature[] = [
@@ -135,7 +138,10 @@ class StorageService {
         );
       } catch (error) {
         if (!this.warned) {
-          console.warn('Failed to save settings, using memory fallback.', error);
+          console.warn(
+            'Failed to save settings, using memory fallback.',
+            error,
+          );
           this.warned = true;
         }
       }
@@ -157,7 +163,10 @@ class StorageService {
         return DEFAULT_SETTINGS;
       } catch (error) {
         if (!this.warned) {
-          console.warn('Failed to read settings, using memory fallback.', error);
+          console.warn(
+            'Failed to read settings, using memory fallback.',
+            error,
+          );
           this.warned = true;
         }
       }
@@ -183,9 +192,7 @@ class StorageService {
     }
   }
 
-  async saveSubscriptionState(
-    subscription: SubscriptionState,
-  ): Promise<void> {
+  async saveSubscriptionState(subscription: SubscriptionState): Promise<void> {
     const canPersist = await this.ensureStorage();
     if (canPersist) {
       try {

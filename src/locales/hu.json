@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Beállítások", "back": "Vissza", "language": "Nyelv", "theme": "Téma", "sound": "Hang", "haptics": "Rezgés", "about": "Névjegy", "version": "SerenitySpark v1.0.0", "description": "Gesztus alapú meditációs alkalmazás.", "privacy": "Adatvédelem: Minden adat az eszközön marad." },
+  "themes": { "light": "Világos", "dark": "Sötét", "solar": "Nap", "mono": "Mono" },
+  "home": { "selectDuration": "Válassz időtartamot", "minutes": "perc", "start": "Indítás", "nature": "Természet", "music": "Zene" },
+  "session": { "meditation": "Meditáció", "swipeToEnd": "Húzd le a befejezéshez", "completed": "Munkamenet kész", "wellDone": "Szép munka!" },
+  "history": { "title": "Előzmények", "totalSessions": "Összes munkamenet", "totalMinutes": "Összes perc", "streak": "Jelenlegi sorozat", "days": "nap", "noSessions": "Még nincs munkamenet" },
+  "common": { "on": "Be", "off": "Ki", "cancel": "Mégse", "confirm": "Megerősítés", "save": "Mentés" }
+}

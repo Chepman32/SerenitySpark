@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Pengaturan", "back": "Kembali", "language": "Bahasa", "theme": "Tema", "sound": "Suara", "haptics": "Getaran", "about": "Tentang", "version": "SerenitySpark v1.0.0", "description": "Aplikasi meditasi berbasis gerakan.", "privacy": "Privasi: Semua data Anda tetap di perangkat." },
+  "themes": { "light": "Terang", "dark": "Gelap", "solar": "Matahari", "mono": "Mono" },
+  "home": { "selectDuration": "Pilih durasi", "minutes": "menit", "start": "Mulai", "nature": "Alam", "music": "Musik" },
+  "session": { "meditation": "Meditasi", "swipeToEnd": "Geser ke bawah untuk mengakhiri", "completed": "Sesi selesai", "wellDone": "Bagus!" },
+  "history": { "title": "Riwayat", "totalSessions": "Total sesi", "totalMinutes": "Total menit", "streak": "Streak saat ini", "days": "hari", "noSessions": "Belum ada sesi" },
+  "common": { "on": "Aktif", "off": "Nonaktif", "cancel": "Batal", "confirm": "Konfirmasi", "save": "Simpan" }
+}

@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "Ajustes",
+    "back": "Atrás",
+    "theme": "Tema",
+    "language": "Idioma",
+    "sound": "Sonido",
+    "haptics": "Háptica",
+    "about": "Acerca de",
+    "version": "SerenitySpark v1.0.0",
+    "description": "Una app de meditación basada en gestos.",
+    "privacy": "Privacidad: Todos tus datos permanecen en tu dispositivo."
+  },
+  "themes": {
+    "light": "Claro",
+    "dark": "Oscuro",
+    "solar": "Solar",
+    "mono": "Mono"
+  },
+  "home": {
+    "selectDuration": "Seleccionar duración",
+    "minutes": "min",
+    "start": "Iniciar",
+    "nature": "Naturaleza",
+    "music": "Música"
+  },
+  "session": {
+    "meditation": "Meditación",
+    "swipeToEnd": "Desliza hacia abajo para terminar",
+    "completed": "Sesión completada",
+    "wellDone": "¡Bien hecho!"
+  },
+  "history": {
+    "title": "Historial",
+    "totalSessions": "Sesiones totales",
+    "totalMinutes": "Minutos totales",
+    "streak": "Racha actual",
+    "days": "días",
+    "noSessions": "Aún no hay sesiones"
+  },
+  "common": {
+    "on": "Activado",
+    "off": "Desactivado",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar"
+  }
+}

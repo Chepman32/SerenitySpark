@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "설정",
+    "back": "뒤로",
+    "theme": "테마",
+    "language": "언어",
+    "sound": "소리",
+    "haptics": "햅틱",
+    "about": "정보",
+    "version": "SerenitySpark v1.0.0",
+    "description": "제스처 기반 명상 앱입니다.",
+    "privacy": "개인정보: 모든 데이터는 기기에 저장됩니다."
+  },
+  "themes": {
+    "light": "라이트",
+    "dark": "다크",
+    "solar": "솔라",
+    "mono": "모노"
+  },
+  "home": {
+    "selectDuration": "시간 선택",
+    "minutes": "분",
+    "start": "시작",
+    "nature": "자연",
+    "music": "음악"
+  },
+  "session": {
+    "meditation": "명상",
+    "swipeToEnd": "아래로 스와이프하여 종료",
+    "completed": "세션 완료",
+    "wellDone": "잘하셨습니다!"
+  },
+  "history": {
+    "title": "기록",
+    "totalSessions": "총 세션",
+    "totalMinutes": "총 시간",
+    "streak": "연속 일수",
+    "days": "일",
+    "noSessions": "아직 세션이 없습니다"
+  },
+  "common": {
+    "on": "켜기",
+    "off": "끄기",
+    "cancel": "취소",
+    "confirm": "확인",
+    "save": "저장"
+  }
+}

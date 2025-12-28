@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Nastavení", "back": "Zpět", "language": "Jazyk", "theme": "Motiv", "sound": "Zvuk", "haptics": "Vibrace", "about": "O aplikaci", "version": "SerenitySpark v1.0.0", "description": "Meditační aplikace ovládaná gesty.", "privacy": "Soukromí: Všechna data zůstávají na vašem zařízení." },
+  "themes": { "light": "Světlý", "dark": "Tmavý", "solar": "Sluneční", "mono": "Mono" },
+  "home": { "selectDuration": "Vyberte délku", "minutes": "min", "start": "Start", "nature": "Příroda", "music": "Hudba" },
+  "session": { "meditation": "Meditace", "swipeToEnd": "Přejeďte dolů pro ukončení", "completed": "Relace dokončena", "wellDone": "Skvělé!" },
+  "history": { "title": "Historie", "totalSessions": "Celkem relací", "totalMinutes": "Celkem minut", "streak": "Aktuální série", "days": "dní", "noSessions": "Zatím žádné relace" },
+  "common": { "on": "Zap", "off": "Vyp", "cancel": "Zrušit", "confirm": "Potvrdit", "save": "Uložit" }
+}

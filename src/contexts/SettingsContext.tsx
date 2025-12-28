@@ -33,6 +33,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     aggressiveRemindersEnabled: false,
     focusAdvisorEnabled: true,
     premiumTheme: 'default',
+    theme: 'dark',
+    soundEnabled: true,
+    hapticsEnabled: true,
   });
   const [isLoaded, setIsLoaded] = useState(false);
 

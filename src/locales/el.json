@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Ρυθμίσεις", "back": "Πίσω", "language": "Γλώσσα", "theme": "Θέμα", "sound": "Ήχος", "haptics": "Δόνηση", "about": "Σχετικά", "version": "SerenitySpark v1.0.0", "description": "Εφαρμογή διαλογισμού με χειρονομίες.", "privacy": "Απόρρητο: Όλα τα δεδομένα παραμένουν στη συσκευή σας." },
+  "themes": { "light": "Φωτεινό", "dark": "Σκοτεινό", "solar": "Ηλιακό", "mono": "Μονό" },
+  "home": { "selectDuration": "Επιλέξτε διάρκεια", "minutes": "λεπτά", "start": "Έναρξη", "nature": "Φύση", "music": "Μουσική" },
+  "session": { "meditation": "Διαλογισμός", "swipeToEnd": "Σύρετε προς τα κάτω για τέλος", "completed": "Συνεδρία ολοκληρώθηκε", "wellDone": "Μπράβο!" },
+  "history": { "title": "Ιστορικό", "totalSessions": "Συνολικές συνεδρίες", "totalMinutes": "Συνολικά λεπτά", "streak": "Τρέχουσα σειρά", "days": "ημέρες", "noSessions": "Δεν υπάρχουν συνεδρίες" },
+  "common": { "on": "Ενεργό", "off": "Ανενεργό", "cancel": "Ακύρωση", "confirm": "Επιβεβαίωση", "save": "Αποθήκευση" }
+}

@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Mga Setting", "back": "Bumalik", "language": "Wika", "theme": "Tema", "sound": "Tunog", "haptics": "Vibration", "about": "Tungkol", "version": "SerenitySpark v1.0.0", "description": "Gesture-based na meditation app.", "privacy": "Privacy: Lahat ng data ay nananatili sa iyong device." },
+  "themes": { "light": "Maliwanag", "dark": "Madilim", "solar": "Solar", "mono": "Mono" },
+  "home": { "selectDuration": "Pumili ng tagal", "minutes": "min", "start": "Simulan", "nature": "Kalikasan", "music": "Musika" },
+  "session": { "meditation": "Meditasyon", "swipeToEnd": "I-swipe pababa para tapusin", "completed": "Tapos na ang session", "wellDone": "Magaling!" },
+  "history": { "title": "Kasaysayan", "totalSessions": "Kabuuang session", "totalMinutes": "Kabuuang minuto", "streak": "Kasalukuyang streak", "days": "araw", "noSessions": "Wala pang session" },
+  "common": { "on": "Bukas", "off": "Sarado", "cancel": "Kanselahin", "confirm": "Kumpirmahin", "save": "I-save" }
+}

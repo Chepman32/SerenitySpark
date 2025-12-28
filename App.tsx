@@ -7,11 +7,13 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import './src/locales'; // Initialize i18n
 import { AppProvider, useApp } from './src/contexts/AppContext';
 import { SettingsProvider } from './src/contexts/SettingsContext';
 import { SessionProvider } from './src/contexts/SessionContext';
 import { HistoryProvider } from './src/contexts/HistoryContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import SplashScreen from './src/screens/SplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import SessionScreen from './src/screens/SessionScreen';
@@ -21,6 +23,7 @@ import StatisticsScreen from './src/screens/StatisticsScreen';
 
 const AppNavigator: React.FC = () => {
   const { currentScreen } = useApp();
+  const { theme } = useTheme();
   const opacity = useSharedValue(1);
   const [previousScreen, setPreviousScreen] = useState<string | null>(null);
 
@@ -71,8 +74,18 @@ const AppNavigator: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0A0F" />
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
+      <StatusBar
+        barStyle={
+          theme.colors.background === '#FFFFFF' ||
+          theme.colors.background === '#FFF8E7'
+            ? 'dark-content'
+            : 'light-content'
+        }
+        backgroundColor={theme.colors.background}
+      />
       <Animated.View style={[styles.screenContainer, animatedStyle]}>
         {renderScreen()}
       </Animated.View>
@@ -97,11 +110,13 @@ function App(): React.JSX.Element {
         <AppProvider>
           <SubscriptionProvider>
             <SettingsProvider>
-              <SessionProvider>
-                <HistoryProvider>
-                  <AppNavigator />
-                </HistoryProvider>
-              </SessionProvider>
+              <ThemeProvider>
+                <SessionProvider>
+                  <HistoryProvider>
+                    <AppNavigator />
+                  </HistoryProvider>
+                </SessionProvider>
+              </ThemeProvider>
             </SettingsProvider>
           </SubscriptionProvider>
         </AppProvider>

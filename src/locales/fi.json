@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Asetukset", "back": "Takaisin", "language": "Kieli", "theme": "Teema", "sound": "Ääni", "haptics": "Värinä", "about": "Tietoja", "version": "SerenitySpark v1.0.0", "description": "Eleisiin perustuva meditaatiosovellus.", "privacy": "Yksityisyys: Kaikki tietosi pysyvät laitteellasi." },
+  "themes": { "light": "Vaalea", "dark": "Tumma", "solar": "Aurinko", "mono": "Mono" },
+  "home": { "selectDuration": "Valitse kesto", "minutes": "min", "start": "Aloita", "nature": "Luonto", "music": "Musiikki" },
+  "session": { "meditation": "Meditaatio", "swipeToEnd": "Pyyhkäise alas lopettaaksesi", "completed": "Istunto valmis", "wellDone": "Hienosti tehty!" },
+  "history": { "title": "Historia", "totalSessions": "Istuntoja yhteensä", "totalMinutes": "Minuutteja yhteensä", "streak": "Nykyinen putki", "days": "päivää", "noSessions": "Ei vielä istuntoja" },
+  "common": { "on": "Päällä", "off": "Pois", "cancel": "Peruuta", "confirm": "Vahvista", "save": "Tallenna" }
+}

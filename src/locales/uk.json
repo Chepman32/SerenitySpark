@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Налаштування", "back": "Назад", "language": "Мова", "theme": "Тема", "sound": "Звук", "haptics": "Вібрація", "about": "Про додаток", "version": "SerenitySpark v1.0.0", "description": "Додаток для медитації з керуванням жестами.", "privacy": "Конфіденційність: Усі дані зберігаються на пристрої." },
+  "themes": { "light": "Світла", "dark": "Темна", "solar": "Сонячна", "mono": "Моно" },
+  "home": { "selectDuration": "Оберіть тривалість", "minutes": "хв", "start": "Почати", "nature": "Природа", "music": "Музика" },
+  "session": { "meditation": "Медитація", "swipeToEnd": "Проведіть вниз для завершення", "completed": "Сесію завершено", "wellDone": "Чудово!" },
+  "history": { "title": "Історія", "totalSessions": "Всього сесій", "totalMinutes": "Всього хвилин", "streak": "Поточна серія", "days": "днів", "noSessions": "Ще немає сесій" },
+  "common": { "on": "Увімк", "off": "Вимк", "cancel": "Скасувати", "confirm": "Підтвердити", "save": "Зберегти" }
+}

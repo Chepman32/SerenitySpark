@@ -23,6 +23,9 @@ export interface UserSettings {
   aggressiveRemindersEnabled: boolean;
   focusAdvisorEnabled: boolean;
   premiumTheme: 'default' | 'amoled' | 'neon' | 'seasonal';
+  theme: 'light' | 'dark' | 'solar' | 'mono';
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
 }
 
 export interface AudioTrack {

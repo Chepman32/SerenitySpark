@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Cài đặt", "back": "Quay lại", "language": "Ngôn ngữ", "theme": "Giao diện", "sound": "Âm thanh", "haptics": "Rung", "about": "Giới thiệu", "version": "SerenitySpark v1.0.0", "description": "Ứng dụng thiền định điều khiển bằng cử chỉ.", "privacy": "Quyền riêng tư: Tất cả dữ liệu được lưu trên thiết bị." },
+  "themes": { "light": "Sáng", "dark": "Tối", "solar": "Nắng", "mono": "Đơn sắc" },
+  "home": { "selectDuration": "Chọn thời gian", "minutes": "phút", "start": "Bắt đầu", "nature": "Thiên nhiên", "music": "Nhạc" },
+  "session": { "meditation": "Thiền định", "swipeToEnd": "Vuốt xuống để kết thúc", "completed": "Hoàn thành phiên", "wellDone": "Tuyệt vời!" },
+  "history": { "title": "Lịch sử", "totalSessions": "Tổng phiên", "totalMinutes": "Tổng phút", "streak": "Chuỗi hiện tại", "days": "ngày", "noSessions": "Chưa có phiên nào" },
+  "common": { "on": "Bật", "off": "Tắt", "cancel": "Hủy", "confirm": "Xác nhận", "save": "Lưu" }
+}

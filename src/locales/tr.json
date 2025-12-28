@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Ayarlar", "back": "Geri", "theme": "Tema", "language": "Dil", "sound": "Ses", "haptics": "Dokunsal", "about": "Hakkında", "version": "SerenitySpark v1.0.0", "description": "Hareket tabanlı meditasyon uygulaması.", "privacy": "Gizlilik: Tüm verileriniz cihazınızda kalır." },
+  "themes": { "light": "Açık", "dark": "Koyu", "solar": "Güneş", "mono": "Mono" },
+  "home": { "selectDuration": "Süre seç", "minutes": "dk", "start": "Başla", "nature": "Doğa", "music": "Müzik" },
+  "session": { "meditation": "Meditasyon", "swipeToEnd": "Bitirmek için aşağı kaydır", "completed": "Oturum tamamlandı", "wellDone": "Aferin!" },
+  "history": { "title": "Geçmiş", "totalSessions": "Toplam oturum", "totalMinutes": "Toplam dakika", "streak": "Mevcut seri", "days": "gün", "noSessions": "Henüz oturum yok" },
+  "common": { "on": "Açık", "off": "Kapalı", "cancel": "İptal", "confirm": "Onayla", "save": "Kaydet" }
+}

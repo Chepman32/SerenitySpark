@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Indstillinger", "back": "Tilbage", "language": "Sprog", "theme": "Tema", "sound": "Lyd", "haptics": "Haptik", "about": "Om", "version": "SerenitySpark v1.0.0", "description": "En bevægelsesbaseret meditationsapp.", "privacy": "Privatliv: Alle dine data forbliver på din enhed." },
+  "themes": { "light": "Lys", "dark": "Mørk", "solar": "Sol", "mono": "Mono" },
+  "home": { "selectDuration": "Vælg varighed", "minutes": "min", "start": "Start", "nature": "Natur", "music": "Musik" },
+  "session": { "meditation": "Meditation", "swipeToEnd": "Stryg ned for at afslutte", "completed": "Session fuldført", "wellDone": "Godt klaret!" },
+  "history": { "title": "Historik", "totalSessions": "Samlede sessioner", "totalMinutes": "Samlede minutter", "streak": "Nuværende række", "days": "dage", "noSessions": "Ingen sessioner endnu" },
+  "common": { "on": "Til", "off": "Fra", "cancel": "Annuller", "confirm": "Bekræft", "save": "Gem" }
+}

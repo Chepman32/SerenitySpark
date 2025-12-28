@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "设置",
+    "back": "返回",
+    "theme": "主题",
+    "language": "语言",
+    "sound": "声音",
+    "haptics": "触感反馈",
+    "about": "关于",
+    "version": "SerenitySpark v1.0.0",
+    "description": "一款手势驱动的冥想应用，带来正念时刻。",
+    "privacy": "隐私：您的所有数据都保存在设备上。"
+  },
+  "themes": {
+    "light": "浅色",
+    "dark": "深色",
+    "solar": "暖阳",
+    "mono": "单色"
+  },
+  "home": {
+    "selectDuration": "选择时长",
+    "minutes": "分钟",
+    "start": "开始",
+    "nature": "自然",
+    "music": "音乐"
+  },
+  "session": {
+    "meditation": "冥想",
+    "swipeToEnd": "向下滑动结束",
+    "completed": "冥想完成",
+    "wellDone": "做得好！"
+  },
+  "history": {
+    "title": "历史",
+    "totalSessions": "总次数",
+    "totalMinutes": "总分钟数",
+    "streak": "连续天数",
+    "days": "天",
+    "noSessions": "暂无记录"
+  },
+  "common": {
+    "on": "开",
+    "off": "关",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存"
+  }
+}

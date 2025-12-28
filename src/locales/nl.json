@@ -1,0 +1,8 @@
+{
+  "settings": { "title": "Instellingen", "back": "Terug", "theme": "Thema", "language": "Taal", "sound": "Geluid", "haptics": "Haptisch", "about": "Over", "version": "SerenitySpark v1.0.0", "description": "Een gebaar-gestuurde meditatie-app.", "privacy": "Privacy: Al je gegevens blijven op je apparaat." },
+  "themes": { "light": "Licht", "dark": "Donker", "solar": "Zonne", "mono": "Mono" },
+  "home": { "selectDuration": "Kies duur", "minutes": "min", "start": "Start", "nature": "Natuur", "music": "Muziek" },
+  "session": { "meditation": "Meditatie", "swipeToEnd": "Veeg omlaag om te beëindigen", "completed": "Sessie voltooid", "wellDone": "Goed gedaan!" },
+  "history": { "title": "Geschiedenis", "totalSessions": "Totaal sessies", "totalMinutes": "Totaal minuten", "streak": "Huidige reeks", "days": "dagen", "noSessions": "Nog geen sessies" },
+  "common": { "on": "Aan", "off": "Uit", "cancel": "Annuleren", "confirm": "Bevestigen", "save": "Opslaan" }
+}

@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "設定",
+    "back": "戻る",
+    "theme": "テーマ",
+    "language": "言語",
+    "sound": "サウンド",
+    "haptics": "触覚フィードバック",
+    "about": "アプリについて",
+    "version": "SerenitySpark v1.0.0",
+    "description": "ジェスチャー操作の瞑想アプリ。",
+    "privacy": "プライバシー：すべてのデータはデバイスに保存されます。"
+  },
+  "themes": {
+    "light": "ライト",
+    "dark": "ダーク",
+    "solar": "ソーラー",
+    "mono": "モノ"
+  },
+  "home": {
+    "selectDuration": "時間を選択",
+    "minutes": "分",
+    "start": "開始",
+    "nature": "自然",
+    "music": "音楽"
+  },
+  "session": {
+    "meditation": "瞑想",
+    "swipeToEnd": "下にスワイプして終了",
+    "completed": "セッション完了",
+    "wellDone": "お疲れ様でした！"
+  },
+  "history": {
+    "title": "履歴",
+    "totalSessions": "合計セッション",
+    "totalMinutes": "合計分数",
+    "streak": "連続日数",
+    "days": "日",
+    "noSessions": "まだセッションがありません"
+  },
+  "common": {
+    "on": "オン",
+    "off": "オフ",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存"
+  }
+}

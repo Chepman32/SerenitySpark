@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "الإعدادات",
+    "back": "رجوع",
+    "theme": "المظهر",
+    "language": "اللغة",
+    "sound": "الصوت",
+    "haptics": "الاهتزاز",
+    "about": "حول",
+    "version": "SerenitySpark v1.0.0",
+    "description": "تطبيق تأمل يعتمد على الإيماءات.",
+    "privacy": "الخصوصية: جميع بياناتك تبقى على جهازك."
+  },
+  "themes": {
+    "light": "فاتح",
+    "dark": "داكن",
+    "solar": "شمسي",
+    "mono": "أحادي"
+  },
+  "home": {
+    "selectDuration": "اختر المدة",
+    "minutes": "دقيقة",
+    "start": "ابدأ",
+    "nature": "طبيعة",
+    "music": "موسيقى"
+  },
+  "session": {
+    "meditation": "تأمل",
+    "swipeToEnd": "اسحب للأسفل للإنهاء",
+    "completed": "اكتملت الجلسة",
+    "wellDone": "أحسنت!"
+  },
+  "history": {
+    "title": "السجل",
+    "totalSessions": "إجمالي الجلسات",
+    "totalMinutes": "إجمالي الدقائق",
+    "streak": "السلسلة الحالية",
+    "days": "أيام",
+    "noSessions": "لا توجد جلسات بعد"
+  },
+  "common": {
+    "on": "تشغيل",
+    "off": "إيقاف",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ"
+  }
+}

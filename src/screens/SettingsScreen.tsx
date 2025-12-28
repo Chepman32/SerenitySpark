@@ -1,5 +1,12 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Dimensions,
+  Switch,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Gesture,
@@ -13,48 +20,80 @@ import Animated, {
   interpolate,
   runOnJS,
 } from 'react-native-reanimated';
-import { theme } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useApp } from '../contexts/AppContext';
-import AudioService from '../services/AudioService';
+import { ThemeType } from '../constants/themes';
+
+const LANGUAGES = [
+  { code: 'en', name: 'English', nativeName: 'English' },
+  { code: 'zh-Hans', name: 'Chinese (Simplified)', nativeName: '简体中文' },
+  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+  { code: 'ko', name: 'Korean', nativeName: '한국어' },
+  { code: 'de', name: 'German', nativeName: 'Deutsch' },
+  { code: 'fr', name: 'French', nativeName: 'Français' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español' },
+  { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português (BR)' },
+  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
+  { code: 'it', name: 'Italian', nativeName: 'Italiano' },
+  { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
+  { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
+  { code: 'th', name: 'Thai', nativeName: 'ไทย' },
+  { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
+  { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
+  { code: 'pl', name: 'Polish', nativeName: 'Polski' },
+  { code: 'uk', name: 'Ukrainian', nativeName: 'Українська' },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+  { code: 'he', name: 'Hebrew', nativeName: 'עברית' },
+  { code: 'sv', name: 'Swedish', nativeName: 'Svenska' },
+  { code: 'no', name: 'Norwegian', nativeName: 'Norsk' },
+  { code: 'da', name: 'Danish', nativeName: 'Dansk' },
+  { code: 'fi', name: 'Finnish', nativeName: 'Suomi' },
+  { code: 'cs', name: 'Czech', nativeName: 'Čeština' },
+  { code: 'hu', name: 'Hungarian', nativeName: 'Magyar' },
+  { code: 'ro', name: 'Romanian', nativeName: 'Română' },
+  { code: 'el', name: 'Greek', nativeName: 'Ελληνικά' },
+  { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
+  { code: 'fil', name: 'Filipino', nativeName: 'Filipino' },
+];
 
 const SettingsScreen: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const { theme, themeType, setTheme } = useTheme();
   const { settings, updateSettings } = useSettings();
   const { navigateToHome } = useApp();
+  const [languageExpanded, setLanguageExpanded] = useState(false);
 
   const translateY = useSharedValue(0);
   const screenHeight = Dimensions.get('window').height;
-  const panRef = React.useRef(null);
+  const panRef = React.useRef<any>(null);
   const scrollY = useSharedValue(0);
-  const onScroll = React.useCallback(event => {
+
+  const currentLanguage =
+    LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
+
+  const onScroll = React.useCallback((event: any) => {
     scrollY.value = event.nativeEvent.contentOffset.y;
   }, []);
 
-  const AnimatedScrollView = Animated.ScrollView;
-
-  const natureTracks = AudioService.getAvailableTracks('nature');
-  const musicTracks = AudioService.getAvailableTracks('music');
-
-  const handleNatureTrackSelect = (trackId: string) => {
-    updateSettings({ defaultNatureTrack: trackId });
+  const handleThemeSelect = (newTheme: ThemeType) => {
+    setTheme(newTheme);
+    updateSettings({ theme: newTheme });
   };
 
-  const handleMusicTrackSelect = (trackId: string) => {
-    updateSettings({ defaultMusicTrack: trackId });
+  const handleLanguageSelect = (langCode: string) => {
+    i18n.changeLanguage(langCode);
+    setLanguageExpanded(false);
   };
 
-  const toggleHardMode = () => {
-    updateSettings({ hardModeEnabled: !settings.hardModeEnabled });
+  const toggleSound = () => {
+    updateSettings({ soundEnabled: !settings.soundEnabled });
   };
 
-  const toggleAggressiveReminders = () => {
-    updateSettings({
-      aggressiveRemindersEnabled: !settings.aggressiveRemindersEnabled,
-    });
-  };
-
-  const toggleFocusAdvisor = () => {
-    updateSettings({ focusAdvisorEnabled: !settings.focusAdvisorEnabled });
+  const toggleHaptics = () => {
+    updateSettings({ hapticsEnabled: !settings.hapticsEnabled });
   };
 
   const gesture = useMemo(
@@ -117,15 +156,19 @@ const SettingsScreen: React.FC = () => {
     };
   });
 
+  const themeOptions: ThemeType[] = ['light', 'dark', 'solar', 'mono'];
+
+  const styles = createStyles(theme);
+
   return (
-    <GestureDetector gesture={gesture} style={styles.root}>
+    <GestureDetector gesture={gesture}>
       <Animated.View style={[styles.container, animatedStyle]}>
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <Pressable onPress={navigateToHome}>
-              <Text style={styles.backButton}>← Back</Text>
+              <Text style={styles.backButton}>← {t('settings.back')}</Text>
             </Pressable>
-            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.title}>{t('settings.title')}</Text>
           </View>
 
           <GHScrollView
@@ -136,163 +179,136 @@ const SettingsScreen: React.FC = () => {
             onScroll={onScroll}
             scrollEventThrottle={16}
           >
+            {/* Theme Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Audio Preferences</Text>
-
-              <Text style={styles.label}>Nature Sound</Text>
-              {natureTracks.map(track => (
-                <Pressable
-                  key={track.id}
-                  style={[
-                    styles.option,
-                    settings.defaultNatureTrack === track.id &&
-                      styles.optionSelected,
-                  ]}
-                  onPress={() => handleNatureTrackSelect(track.id)}
-                >
-                  <Text
+              <Text style={styles.sectionTitle}>{t('settings.theme')}</Text>
+              <View style={styles.themeGrid}>
+                {themeOptions.map(themeOption => (
+                  <Pressable
+                    key={themeOption}
                     style={[
-                      styles.optionText,
-                      settings.defaultNatureTrack === track.id &&
-                        styles.optionTextSelected,
+                      styles.themeOption,
+                      themeType === themeOption && styles.themeOptionSelected,
                     ]}
+                    onPress={() => handleThemeSelect(themeOption)}
                   >
-                    {track.name}
-                  </Text>
-                  {settings.defaultNatureTrack === track.id && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
-                </Pressable>
-              ))}
-
-              <Text style={[styles.label, { marginTop: theme.spacing.lg }]}>
-                Music Track
-              </Text>
-              {musicTracks.map(track => (
-                <Pressable
-                  key={track.id}
-                  style={[
-                    styles.option,
-                    settings.defaultMusicTrack === track.id &&
-                      styles.optionSelected,
-                  ]}
-                  onPress={() => handleMusicTrackSelect(track.id)}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      settings.defaultMusicTrack === track.id &&
-                        styles.optionTextSelected,
-                    ]}
-                  >
-                    {track.name}
-                  </Text>
-                  {settings.defaultMusicTrack === track.id && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
-                </Pressable>
-              ))}
+                    <View
+                      style={[
+                        styles.themePreview,
+                        getThemePreviewStyle(themeOption),
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.themeLabel,
+                        themeType === themeOption && styles.themeLabelSelected,
+                      ]}
+                    >
+                      {t(`themes.${themeOption}`)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
+            {/* Language Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Focus & Protection</Text>
+              <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
               <Pressable
-                style={[
-                  styles.option,
-                  settings.hardModeEnabled && styles.optionSelected,
-                ]}
-                onPress={toggleHardMode}
+                style={styles.accordionHeader}
+                onPress={() => setLanguageExpanded(!languageExpanded)}
               >
-                <View style={styles.optionTextGroup}>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      settings.hardModeEnabled && styles.optionTextSelected,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    Hard mode (confirm reason)
+                <View style={styles.accordionHeaderContent}>
+                  <Text style={styles.settingLabel}>
+                    {currentLanguage.nativeName}
                   </Text>
-                  <Text style={styles.optionSubtext} numberOfLines={2}>
-                    Swipe-to-end requires a reason and is logged separately.
+                  <Text style={styles.accordionSubtext}>
+                    {currentLanguage.name}
                   </Text>
                 </View>
-                <View style={styles.checkmarkContainer}>
-                  <Text style={styles.checkmark}>
-                    {settings.hardModeEnabled ? 'On' : 'Off'}
-                  </Text>
-                </View>
+                <Text style={styles.accordionArrow}>
+                  {languageExpanded ? '▲' : '▼'}
+                </Text>
               </Pressable>
 
-              <Pressable
-                style={[
-                  styles.option,
-                  settings.aggressiveRemindersEnabled && styles.optionSelected,
-                ]}
-                onPress={toggleAggressiveReminders}
-              >
-                <View style={styles.optionTextGroup}>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      settings.aggressiveRemindersEnabled &&
-                        styles.optionTextSelected,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    Aggressive reminders
-                  </Text>
-                  <Text style={styles.optionSubtext} numberOfLines={2}>
-                    Extra nudges when you leave the app mid-session.
-                  </Text>
+              {languageExpanded && (
+                <View style={styles.languageList}>
+                  {LANGUAGES.map(lang => (
+                    <Pressable
+                      key={lang.code}
+                      style={[
+                        styles.languageItem,
+                        i18n.language === lang.code &&
+                          styles.languageItemSelected,
+                      ]}
+                      onPress={() => handleLanguageSelect(lang.code)}
+                    >
+                      <View>
+                        <Text
+                          style={[
+                            styles.languageNative,
+                            i18n.language === lang.code &&
+                              styles.languageTextSelected,
+                          ]}
+                        >
+                          {lang.nativeName}
+                        </Text>
+                        <Text style={styles.languageName}>{lang.name}</Text>
+                      </View>
+                      {i18n.language === lang.code && (
+                        <Text style={styles.checkmark}>✓</Text>
+                      )}
+                    </Pressable>
+                  ))}
                 </View>
-                <View style={styles.checkmarkContainer}>
-                  <Text style={styles.checkmark}>
-                    {settings.aggressiveRemindersEnabled ? 'On' : 'Off'}
-                  </Text>
-                </View>
-              </Pressable>
-
-              <Pressable
-                style={[
-                  styles.option,
-                  settings.focusAdvisorEnabled && styles.optionSelected,
-                ]}
-                onPress={toggleFocusAdvisor}
-              >
-                <View style={styles.optionTextGroup}>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      settings.focusAdvisorEnabled && styles.optionTextSelected,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    Focus Advisor suggestions
-                  </Text>
-                  <Text style={styles.optionSubtext} numberOfLines={2}>
-                    Adaptive durations based on your history.
-                  </Text>
-                </View>
-                <View style={styles.checkmarkContainer}>
-                  <Text style={styles.checkmark}>
-                    {settings.focusAdvisorEnabled ? 'On' : 'Off'}
-                  </Text>
-                </View>
-              </Pressable>
+              )}
             </View>
 
+            {/* Sound Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>About</Text>
-              <Text style={styles.aboutText}>SerenitySpark v1.0.0</Text>
-              <Text style={styles.aboutText}>
-                A gesture-driven meditation app for mindful moments.
-              </Text>
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>{t('settings.sound')}</Text>
+                </View>
+                <Switch
+                  value={settings.soundEnabled}
+                  onValueChange={toggleSound}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.primary,
+                  }}
+                  thumbColor={theme.colors.text}
+                />
+              </View>
+            </View>
+
+            {/* Haptics Section */}
+            <View style={styles.section}>
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>
+                    {t('settings.haptics')}
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.hapticsEnabled}
+                  onValueChange={toggleHaptics}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.primary,
+                  }}
+                  thumbColor={theme.colors.text}
+                />
+              </View>
+            </View>
+
+            {/* About Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
+              <Text style={styles.aboutText}>{t('settings.version')}</Text>
+              <Text style={styles.aboutText}>{t('settings.description')}</Text>
               <Text style={[styles.aboutText, { marginTop: theme.spacing.md }]}>
-                Privacy: All your data stays on your device.
+                {t('settings.privacy')}
               </Text>
             </View>
           </GHScrollView>
@@ -302,93 +318,165 @@ const SettingsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  header: {
-    padding: theme.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.surface,
-  },
-  backButton: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '300',
-    color: theme.colors.text,
-  },
-  content: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl,
-  },
-  section: {
-    marginBottom: theme.spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  label: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
-    textTransform: 'uppercase',
-  },
-  option: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.sm,
-    marginBottom: theme.spacing.sm,
-  },
-  optionTextGroup: {
-    flex: 1,
-    minWidth: 0,
-  },
-  optionSelected: {
-    backgroundColor: theme.colors.primary,
-  },
-  optionText: {
-    fontSize: 16,
-    color: theme.colors.text,
-  },
-  optionTextSelected: {
-    fontWeight: '500',
-  },
-  checkmark: {
-    fontSize: 18,
-    color: theme.colors.text,
-  },
-  optionSubtext: {
-    color: theme.colors.textSecondary,
-    fontSize: 13,
-    marginTop: 4,
-  },
-  checkmarkContainer: {
-    paddingLeft: theme.spacing.md,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  aboutText: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
-  },
-});
+const getThemePreviewStyle = (themeType: ThemeType) => {
+  const previewColors: Record<
+    ThemeType,
+    { backgroundColor: string; borderColor: string }
+  > = {
+    light: { backgroundColor: '#FFFFFF', borderColor: '#E0E0E0' },
+    dark: { backgroundColor: '#0D0D0D', borderColor: '#333333' },
+    solar: { backgroundColor: '#FFF8E7', borderColor: '#E8D5B5' },
+    mono: { backgroundColor: '#2D2D2D', borderColor: '#505050' },
+  };
+  return previewColors[themeType];
+};
+
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scroll: {
+      flex: 1,
+    },
+    header: {
+      padding: theme.spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    backButton: {
+      fontSize: 16,
+      color: theme.colors.primary,
+      marginBottom: theme.spacing.sm,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '300',
+      color: theme.colors.text,
+    },
+    content: {
+      padding: theme.spacing.lg,
+      paddingBottom: theme.spacing.xxl,
+    },
+    section: {
+      marginBottom: theme.spacing.xl,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.textSecondary,
+      marginBottom: theme.spacing.md,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    themeGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.spacing.sm,
+    },
+    themeOption: {
+      width: '48%',
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      alignItems: 'center',
+    },
+    themeOptionSelected: {
+      borderColor: theme.colors.primary,
+    },
+    themePreview: {
+      width: 60,
+      height: 40,
+      borderRadius: theme.borderRadius.sm,
+      borderWidth: 1,
+      marginBottom: theme.spacing.sm,
+    },
+    themeLabel: {
+      fontSize: 14,
+      color: theme.colors.text,
+    },
+    themeLabelSelected: {
+      fontWeight: '600',
+      color: theme.colors.primary,
+    },
+    settingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+    },
+    settingInfo: {
+      flex: 1,
+    },
+    settingLabel: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    aboutText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      lineHeight: 20,
+    },
+    accordionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+    },
+    accordionHeaderContent: {
+      flex: 1,
+    },
+    accordionSubtext: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginTop: 2,
+    },
+    accordionArrow: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginLeft: theme.spacing.md,
+    },
+    languageList: {
+      marginTop: theme.spacing.sm,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+      overflow: 'hidden',
+    },
+    languageItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: theme.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    languageItemSelected: {
+      backgroundColor: theme.colors.primary + '20',
+    },
+    languageNative: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    languageName: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginTop: 2,
+    },
+    languageTextSelected: {
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    checkmark: {
+      fontSize: 18,
+      color: theme.colors.primary,
+    },
+  });
 
 export default SettingsScreen;

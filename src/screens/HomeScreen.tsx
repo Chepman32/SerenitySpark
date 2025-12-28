@@ -188,6 +188,9 @@ const HomeScreen: React.FC = () => {
       return;
     }
     setSelectedDuration(focusAdvice.focusMinutes);
+    beginSession(focusAdvice.focusMinutes).catch(error => {
+      console.error('Failed to start session from Focus Advisor:', error);
+    });
   };
 
   const proceedWithSession = (duration: number) => {

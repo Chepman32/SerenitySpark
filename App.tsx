@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,11 +22,19 @@ import StatisticsScreen from './src/screens/StatisticsScreen';
 const AppNavigator: React.FC = () => {
   const { currentScreen } = useApp();
   const opacity = useSharedValue(1);
+  const [previousScreen, setPreviousScreen] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fade out and fade in on screen change
-    opacity.value = 0;
-    opacity.value = withTiming(1, { duration: 200 });
+    // Track previous screen for session transitions
+    if (currentScreen !== 'Session') {
+      setPreviousScreen(currentScreen);
+    }
+
+    // Fade in on screen change (except when leaving Session - that has its own animation)
+    if (currentScreen !== 'Home' || previousScreen !== 'Session') {
+      opacity.value = 0;
+      opacity.value = withTiming(1, { duration: 200 });
+    }
   }, [currentScreen]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -40,7 +48,17 @@ const AppNavigator: React.FC = () => {
       case 'Home':
         return <HomeScreen />;
       case 'Session':
-        return <SessionScreen />;
+        // Render HomeScreen underneath SessionScreen for smooth dismissal
+        return (
+          <>
+            <View style={StyleSheet.absoluteFill}>
+              <HomeScreen />
+            </View>
+            <View style={StyleSheet.absoluteFill}>
+              <SessionScreen />
+            </View>
+          </>
+        );
       case 'History':
         return <HistoryScreen />;
       case 'Settings':

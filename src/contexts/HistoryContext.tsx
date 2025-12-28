@@ -33,6 +33,8 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
     monthlyMinutes: 0,
     averageDuration: 0,
     bestStreak: 0,
+    mostProductiveDay: 'N/A',
+    longestSessionMinutes: 0,
   });
 
   useEffect(() => {
@@ -105,6 +107,50 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
     const currentStreak = calculateStreak(sessions);
     const bestStreak = calculateStreak(sessions, true);
 
+    // Calculate most productive day of the week
+    const dayMinutes: number[] = [0, 0, 0, 0, 0, 0, 0];
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+
+    sessions.forEach(session => {
+      const date = new Date(session.timestamp);
+      const dayOfWeek = date.getDay();
+
+      const elapsedSeconds =
+        typeof session.actualDurationSeconds === 'number'
+          ? session.actualDurationSeconds
+          : session.duration * 60;
+
+      dayMinutes[dayOfWeek] += elapsedSeconds / 60;
+    });
+
+    const maxMinutes = Math.max(...dayMinutes);
+    const mostProductiveDay =
+      sessions.length === 0 || maxMinutes === 0
+        ? 'N/A'
+        : dayNames[dayMinutes.indexOf(maxMinutes)];
+
+    // Calculate longest single session
+    const longestSessionMinutes =
+      sessions.length === 0
+        ? 0
+        : Math.round(
+            sessions.reduce((max, session) => {
+              const elapsedSeconds =
+                typeof session.actualDurationSeconds === 'number'
+                  ? session.actualDurationSeconds
+                  : session.duration * 60;
+              return Math.max(max, elapsedSeconds);
+            }, 0) / 60,
+          );
+
     setStats({
       totalSessions,
       totalMinutes: Math.round(totalFocusSeconds / 60),
@@ -117,6 +163,8 @@ export const HistoryProvider: React.FC<{ children: ReactNode }> = ({
       monthlyMinutes,
       averageDuration,
       bestStreak,
+      mostProductiveDay,
+      longestSessionMinutes,
     });
   };
 

@@ -59,6 +59,8 @@ export interface HistoryStats {
   monthlyMinutes: number;
   averageDuration: number;
   bestStreak: number;
+  mostProductiveDay: string;
+  longestSessionMinutes: number;
 }
 
 export type PremiumFeature =

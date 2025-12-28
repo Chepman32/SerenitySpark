@@ -126,6 +126,16 @@ const StatisticsScreen: React.FC = () => {
                 value={`${stats.bestStreak} days`}
                 sub={`Current: ${stats.currentStreak}`}
               />
+              <StatisticBlock
+                label="Most Productive"
+                value={stats.mostProductiveDay}
+                sub="Day of week"
+              />
+              <StatisticBlock
+                label="Longest Session"
+                value={`${stats.longestSessionMinutes}m`}
+                sub="Personal best"
+              />
             </View>
           </GHScrollView>
         </SafeAreaView>

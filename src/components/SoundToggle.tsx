@@ -6,7 +6,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { theme, animations } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { animations } from '../constants/theme';
 import HapticService from '../services/HapticService';
 
 interface SoundToggleProps {
@@ -26,6 +27,7 @@ const SoundToggle: React.FC<SoundToggleProps> = ({
   icon,
   label,
 }) => {
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(enabled ? 1 : 0.6);
 
@@ -50,6 +52,8 @@ const SoundToggle: React.FC<SoundToggleProps> = ({
     opacity: opacity.value,
   }));
 
+  const styles = createStyles(theme);
+
   return (
     <AnimatedPressable
       style={[
@@ -69,35 +73,36 @@ const SoundToggle: React.FC<SoundToggleProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 120,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  containerEnabled: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  icon: {
-    fontSize: 24,
-    marginRight: theme.spacing.sm,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.textSecondary,
-  },
-  labelEnabled: {
-    color: theme.colors.text,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.full,
+      backgroundColor: theme.colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 120,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    containerEnabled: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    icon: {
+      fontSize: 24,
+      marginRight: theme.spacing.sm,
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.textSecondary,
+    },
+    labelEnabled: {
+      color: theme.colors.text,
+    },
+  });
 
 export default SoundToggle;

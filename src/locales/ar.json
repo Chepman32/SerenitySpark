@@ -11,38 +11,71 @@
     "description": "تطبيق تأمل يعتمد على الإيماءات.",
     "privacy": "الخصوصية: جميع بياناتك تبقى على جهازك."
   },
-  "themes": {
-    "light": "فاتح",
-    "dark": "داكن",
-    "solar": "شمسي",
-    "mono": "أحادي"
-  },
+  "themes": { "light": "فاتح", "dark": "داكن", "solar": "شمسي", "mono": "أحادي" },
   "home": {
     "selectDuration": "اختر المدة",
     "minutes": "دقيقة",
     "start": "ابدأ",
     "nature": "طبيعة",
-    "music": "موسيقى"
+    "music": "موسيقى",
+    "focusAdvisor": "اقتراح مستشار التركيز",
+    "confidence": "الثقة",
+    "focusBreak": "{{focus}} دقيقة تركيز · {{break}} دقيقة راحة",
+    "applySuggestion": "تطبيق الاقتراح",
+    "enableNotifications": "تفعيل الإشعارات",
+    "notificationMessage": "الإشعارات تذكرك بالجلسات الجارية. اسمح بالوصول في الإعدادات أو اختر إلغاء.",
+    "grantPermissions": "منح الإذن"
   },
   "session": {
     "meditation": "تأمل",
     "swipeToEnd": "اسحب للأسفل للإنهاء",
     "completed": "اكتملت الجلسة",
-    "wellDone": "أحسنت!"
+    "wellDone": "أحسنت!",
+    "hardMode": "الوضع الصعب",
+    "hardModeMessage": "اختر سبب الإنهاء المبكر. سنتتبعه بشكل منفصل.",
+    "endEarly": "إنهاء مبكر",
+    "continueSession": "متابعة الجلسة",
+    "lostFocus": "فقدت التركيز",
+    "urgentTask": "مهمة عاجلة",
+    "tooLong": "طويل جداً / إرهاق",
+    "needBreak": "أحتاج استراحة"
   },
   "history": {
-    "title": "السجل",
-    "totalSessions": "إجمالي الجلسات",
-    "totalMinutes": "إجمالي الدقائق",
-    "streak": "السلسلة الحالية",
+    "title": "رحلتك",
+    "back": "رجوع",
+    "totalSessions": "الجلسات",
+    "totalMinutes": "الدقائق",
+    "streak": "سلسلة الأيام",
     "days": "أيام",
-    "noSessions": "لا توجد جلسات بعد"
+    "noSessions": "لا توجد جلسات بعد. ابدأ التأمل!",
+    "completionRate": "المكتملة",
+    "gaveUp": "المتروكة",
+    "last7Days": "آخر 7 أيام (دقيقة)",
+    "last30Days": "آخر 30 يوم (دقيقة)",
+    "avgSession": "متوسط المدة",
+    "bestStreak": "أفضل سلسلة",
+    "today": "اليوم",
+    "yesterday": "أمس"
   },
-  "common": {
-    "on": "تشغيل",
-    "off": "إيقاف",
-    "cancel": "إلغاء",
-    "confirm": "تأكيد",
-    "save": "حفظ"
-  }
+  "statistics": {
+    "title": "الإحصائيات",
+    "close": "إغلاق",
+    "totalMinutes": "إجمالي الدقائق",
+    "sessions": "جلسات",
+    "completionRate": "معدل الإكمال",
+    "completed": "مكتملة",
+    "weeklyFocus": "التركيز الأسبوعي",
+    "last7Days": "آخر 7 أيام",
+    "monthlyFocus": "التركيز الشهري",
+    "last30Days": "آخر 30 يوم",
+    "avgLength": "متوسط المدة",
+    "perSession": "لكل جلسة",
+    "bestStreak": "أفضل سلسلة",
+    "current": "الحالية",
+    "mostProductive": "الأكثر إنتاجية",
+    "dayOfWeek": "يوم الأسبوع",
+    "longestSession": "أطول جلسة",
+    "personalBest": "الرقم القياسي"
+  },
+  "common": { "on": "تشغيل", "off": "إيقاف", "cancel": "إلغاء", "confirm": "تأكيد", "save": "حفظ" }
 }

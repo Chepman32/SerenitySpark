@@ -11,38 +11,71 @@
     "description": "ジェスチャー操作の瞑想アプリ。",
     "privacy": "プライバシー：すべてのデータはデバイスに保存されます。"
   },
-  "themes": {
-    "light": "ライト",
-    "dark": "ダーク",
-    "solar": "ソーラー",
-    "mono": "モノ"
-  },
+  "themes": { "light": "ライト", "dark": "ダーク", "solar": "ソーラー", "mono": "モノ" },
   "home": {
     "selectDuration": "時間を選択",
     "minutes": "分",
     "start": "開始",
     "nature": "自然",
-    "music": "音楽"
+    "music": "音楽",
+    "focusAdvisor": "フォーカスアドバイザーの提案",
+    "confidence": "信頼度",
+    "focusBreak": "{{focus}}分集中 · {{break}}分休憩",
+    "applySuggestion": "提案を適用",
+    "enableNotifications": "通知を有効にする",
+    "notificationMessage": "通知でセッション中であることをお知らせします。設定で許可するか、キャンセルして続行してください。",
+    "grantPermissions": "許可する"
   },
   "session": {
     "meditation": "瞑想",
     "swipeToEnd": "下にスワイプして終了",
     "completed": "セッション完了",
-    "wellDone": "お疲れ様でした！"
+    "wellDone": "お疲れ様でした！",
+    "hardMode": "ハードモード",
+    "hardModeMessage": "早期終了の理由を選択してください。別途記録されます。",
+    "endEarly": "早期終了",
+    "continueSession": "セッションを続ける",
+    "lostFocus": "集中力が切れた",
+    "urgentTask": "緊急の用事",
+    "tooLong": "長すぎる/疲労",
+    "needBreak": "休憩が必要"
   },
   "history": {
-    "title": "履歴",
-    "totalSessions": "合計セッション",
-    "totalMinutes": "合計分数",
+    "title": "あなたの記録",
+    "back": "戻る",
+    "totalSessions": "セッション数",
+    "totalMinutes": "分",
     "streak": "連続日数",
     "days": "日",
-    "noSessions": "まだセッションがありません"
+    "noSessions": "まだセッションがありません。瞑想を始めましょう！",
+    "completionRate": "完了率",
+    "gaveUp": "中断回数",
+    "last7Days": "過去7日間（分）",
+    "last30Days": "過去30日間（分）",
+    "avgSession": "平均時間",
+    "bestStreak": "最高連続",
+    "today": "今日",
+    "yesterday": "昨日"
   },
-  "common": {
-    "on": "オン",
-    "off": "オフ",
-    "cancel": "キャンセル",
-    "confirm": "確認",
-    "save": "保存"
-  }
+  "statistics": {
+    "title": "統計",
+    "close": "閉じる",
+    "totalMinutes": "合計時間",
+    "sessions": "セッション",
+    "completionRate": "完了率",
+    "completed": "完了",
+    "weeklyFocus": "週間集中",
+    "last7Days": "過去7日間",
+    "monthlyFocus": "月間集中",
+    "last30Days": "過去30日間",
+    "avgLength": "平均時間",
+    "perSession": "セッションごと",
+    "bestStreak": "最高連続",
+    "current": "現在",
+    "mostProductive": "最も生産的",
+    "dayOfWeek": "曜日",
+    "longestSession": "最長セッション",
+    "personalBest": "自己ベスト"
+  },
+  "common": { "on": "オン", "off": "オフ", "cancel": "キャンセル", "confirm": "確認", "save": "保存" }
 }

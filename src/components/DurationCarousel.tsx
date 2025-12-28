@@ -8,12 +8,14 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import {
   DURATION_OPTIONS,
   CARD_WIDTH,
   CARD_SPACING,
 } from '../constants/durations';
-import { theme, animations } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import { animations } from '../constants/theme';
 import { ANIMATION_CONFIG } from '../constants/animations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -30,6 +32,8 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
   initialDuration = 10,
   onDurationPress,
 }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
   const scrollX = useSharedValue(0);
   const initialIndex = DURATION_OPTIONS.findIndex(
     opt => opt.minutes === initialDuration,
@@ -50,6 +54,8 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
       }
     },
   });
+
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
@@ -74,6 +80,8 @@ const DurationCarousel: React.FC<DurationCarouselProps> = ({
             index={index}
             scrollX={scrollX}
             onPress={onDurationPress}
+            theme={theme}
+            label={t('home.minutes')}
           />
         ))}
       </Animated.ScrollView>
@@ -86,6 +94,8 @@ interface DurationCardProps {
   index: number;
   scrollX: Animated.SharedValue<number>;
   onPress?: (duration: number) => void;
+  theme: any;
+  label: string;
 }
 
 const DurationCard: React.FC<DurationCardProps> = ({
@@ -93,6 +103,8 @@ const DurationCard: React.FC<DurationCardProps> = ({
   index,
   scrollX,
   onPress,
+  theme,
+  label,
 }) => {
   const inputRange = [
     (index - 1) * (CARD_WIDTH + CARD_SPACING),
@@ -125,6 +137,8 @@ const DurationCard: React.FC<DurationCardProps> = ({
     }
   };
 
+  const styles = createCardStyles(theme);
+
   return (
     <Pressable onPress={handlePress}>
       <Animated.View
@@ -136,47 +150,52 @@ const DurationCard: React.FC<DurationCardProps> = ({
         ]}
       >
         <Text style={styles.minutes}>{option.minutes}</Text>
-        <Text style={styles.label}>min</Text>
+        <Text style={styles.label}>{label}</Text>
       </Animated.View>
     </Pressable>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    height: 220,
-    paddingVertical: 20,
-  },
-  scrollView: {
-    overflow: 'visible',
-  },
-  scrollContent: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  card: {
-    width: CARD_WIDTH,
-    height: 160,
-    borderRadius: theme.borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  minutes: {
-    fontSize: 48,
-    fontWeight: '300',
-    color: theme.colors.text,
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: '400',
-    color: theme.colors.text,
-    marginTop: 4,
-  },
-});
+const createStyles = (_theme: any) =>
+  StyleSheet.create({
+    container: {
+      height: 220,
+      paddingVertical: 20,
+    },
+    scrollView: {
+      overflow: 'visible',
+    },
+    scrollContent: {
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
+  });
+
+const createCardStyles = (theme: any) =>
+  StyleSheet.create({
+    card: {
+      width: CARD_WIDTH,
+      height: 160,
+      borderRadius: theme.borderRadius.lg,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    minutes: {
+      fontSize: 48,
+      fontWeight: '300',
+      color: theme.colors.text,
+    },
+    label: {
+      fontSize: 18,
+      fontWeight: '400',
+      color: theme.colors.text,
+      marginTop: 4,
+    },
+  });
 
 export default DurationCarousel;

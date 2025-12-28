@@ -17,12 +17,13 @@ import Animated, {
   withTiming,
   interpolate,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import DurationCarousel from '../components/DurationCarousel';
 import SoundToggle from '../components/SoundToggle';
 import StartButton from '../components/StartButton';
 import OnboardingOverlay from '../components/OnboardingOverlay';
 import SwipeIndicator from '../components/SwipeIndicator';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useApp } from '../contexts/AppContext';
 import { useSession } from '../contexts/SessionContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -75,6 +76,8 @@ const getNextBackgroundIndex = (excludeIndex: number | null): number => {
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const HomeScreen: React.FC = () => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
   const { navigateToSession, navigateToSettings, navigateToStatistics } =
     useApp();
   const { startSession } = useSession();
@@ -283,6 +286,8 @@ const HomeScreen: React.FC = () => {
     NotificationService.openSettings().catch(() => null);
   };
 
+  const styles = createStyles(theme);
+
   const permissionModal = (
     <Modal
       animationType="fade"
@@ -292,11 +297,11 @@ const HomeScreen: React.FC = () => {
     >
       <View style={styles.permissionModalBackdrop}>
         <View style={styles.permissionModal}>
-          <Text style={styles.permissionModalTitle}>Enable notifications</Text>
+          <Text style={styles.permissionModalTitle}>
+            {t('home.enableNotifications')}
+          </Text>
           <Text style={styles.permissionModalMessage}>
-            Notifications help us remind you when a session is still running.
-            Grant access in settings, or choose Cancel to continue without
-            reminders.
+            {t('home.notificationMessage')}
           </Text>
           <View style={styles.permissionModalActions}>
             <Pressable
@@ -304,7 +309,7 @@ const HomeScreen: React.FC = () => {
               onPress={handlePermissionModalGrant}
             >
               <Text style={styles.permissionPrimaryText}>
-                Grant Permissions
+                {t('home.grantPermissions')}
               </Text>
             </Pressable>
             <Pressable
@@ -314,7 +319,9 @@ const HomeScreen: React.FC = () => {
               ]}
               onPress={handlePermissionModalCancel}
             >
-              <Text style={styles.permissionSecondaryText}>Cancel</Text>
+              <Text style={styles.permissionSecondaryText}>
+                {t('common.cancel')}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -338,18 +345,21 @@ const HomeScreen: React.FC = () => {
         {settings.focusAdvisorEnabled && focusAdvice && (
           <View style={styles.adviceCard}>
             <View style={styles.adviceHeader}>
-              <Text style={styles.adviceLabel}>Suggested by Focus Advisor</Text>
+              <Text style={styles.adviceLabel}>{t('home.focusAdvisor')}</Text>
               <Text style={styles.adviceConfidence}>
-                {Math.round(focusAdvice.confidence * 100)}% confidence
+                {Math.round(focusAdvice.confidence * 100)}%{' '}
+                {t('home.confidence')}
               </Text>
             </View>
             <Text style={styles.adviceTitle}>
-              {focusAdvice.focusMinutes} min focus · {focusAdvice.breakMinutes}{' '}
-              min break
+              {focusAdvice.focusMinutes} {t('home.minutes')} focus ·{' '}
+              {focusAdvice.breakMinutes} {t('home.minutes')} break
             </Text>
             <Text style={styles.adviceRationale}>{focusAdvice.rationale}</Text>
             <Pressable style={styles.applyButton} onPress={handleApplyAdvice}>
-              <Text style={styles.applyButtonText}>Apply suggestion</Text>
+              <Text style={styles.applyButtonText}>
+                {t('home.applySuggestion')}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -365,14 +375,14 @@ const HomeScreen: React.FC = () => {
             enabled={natureEnabled}
             onToggle={() => setNatureEnabled(!natureEnabled)}
             icon="🍃"
-            label="Nature"
+            label={t('home.nature')}
           />
           <SoundToggle
             type="music"
             enabled={musicEnabled}
             onToggle={() => setMusicEnabled(!musicEnabled)}
             icon="🎵"
-            label="Music"
+            label={t('home.music')}
           />
         </View>
 
@@ -417,132 +427,133 @@ const HomeScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: 'rgba(10, 10, 15, 0.7)',
-  },
-  swipeIndicatorTop: {
-    alignItems: 'center',
-    paddingTop: theme.spacing.sm,
-  },
-  swipeIndicatorBottom: {
-    alignItems: 'center',
-    paddingBottom: theme.spacing.sm,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'space-around',
-    paddingVertical: theme.spacing.xl,
-  },
-  adviceCard: {
-    backgroundColor: 'rgba(17, 24, 36, 0.9)',
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: 'rgba(78, 205, 196, 0.35)',
-    marginHorizontal: theme.spacing.md,
-  },
-  adviceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  adviceLabel: {
-    color: theme.colors.text,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  adviceConfidence: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-  },
-  adviceTitle: {
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  adviceRationale: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  applyButton: {
-    marginTop: theme.spacing.sm,
-    backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    color: theme.colors.background,
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  soundToggles: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: theme.spacing.md,
-  },
-  startButtonContainer: {
-    alignItems: 'center',
-  },
-  permissionModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.lg,
-  },
-  permissionModal: {
-    width: '100%',
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
-  },
-  permissionModalTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: theme.colors.text,
-    textAlign: 'center',
-  },
-  permissionModalMessage: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  permissionModalActions: {
-    gap: theme.spacing.sm,
-  },
-  permissionButton: {
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    alignItems: 'center',
-  },
-  permissionPrimaryButton: {
-    backgroundColor: theme.colors.primary,
-  },
-  permissionSecondaryButton: {
-    borderWidth: 1,
-    borderColor: theme.colors.textSecondary,
-  },
-  permissionPrimaryText: {
-    color: theme.colors.background,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  permissionSecondaryText: {
-    color: theme.colors.text,
-    fontWeight: '500',
-    fontSize: 16,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    background: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: 'rgba(10, 10, 15, 0.7)',
+    },
+    swipeIndicatorTop: {
+      alignItems: 'center',
+      paddingTop: theme.spacing.sm,
+    },
+    swipeIndicatorBottom: {
+      alignItems: 'center',
+      paddingBottom: theme.spacing.sm,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'space-around',
+      paddingVertical: theme.spacing.xl,
+    },
+    adviceCard: {
+      backgroundColor: 'rgba(17, 24, 36, 0.9)',
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.lg,
+      gap: theme.spacing.sm,
+      borderWidth: 1,
+      borderColor: 'rgba(78, 205, 196, 0.35)',
+      marginHorizontal: theme.spacing.md,
+    },
+    adviceHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    adviceLabel: {
+      color: theme.colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    adviceConfidence: {
+      color: theme.colors.textSecondary,
+      fontSize: 12,
+    },
+    adviceTitle: {
+      color: theme.colors.primary,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    adviceRationale: {
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    applyButton: {
+      marginTop: theme.spacing.sm,
+      backgroundColor: theme.colors.primary,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.sm,
+      alignItems: 'center',
+    },
+    applyButtonText: {
+      color: theme.colors.background,
+      fontWeight: '700',
+      fontSize: 16,
+    },
+    soundToggles: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: theme.spacing.md,
+    },
+    startButtonContainer: {
+      alignItems: 'center',
+    },
+    permissionModalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: theme.spacing.lg,
+    },
+    permissionModal: {
+      width: '100%',
+      backgroundColor: theme.colors.background,
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.lg,
+      gap: theme.spacing.md,
+    },
+    permissionModalTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: theme.colors.text,
+      textAlign: 'center',
+    },
+    permissionModalMessage: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    permissionModalActions: {
+      gap: theme.spacing.sm,
+    },
+    permissionButton: {
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.md,
+      alignItems: 'center',
+    },
+    permissionPrimaryButton: {
+      backgroundColor: theme.colors.primary,
+    },
+    permissionSecondaryButton: {
+      borderWidth: 1,
+      borderColor: theme.colors.textSecondary,
+    },
+    permissionPrimaryText: {
+      color: theme.colors.background,
+      fontWeight: '600',
+      fontSize: 16,
+    },
+    permissionSecondaryText: {
+      color: theme.colors.text,
+      fontWeight: '500',
+      fontSize: 16,
+    },
+  });
 
 export default HomeScreen;

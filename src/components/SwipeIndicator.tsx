@@ -10,7 +10,7 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SwipeIndicatorProps {
   direction: 'up' | 'down';
@@ -24,8 +24,10 @@ const BOUNCE_TIMEOUT = 20000;
 
 const SwipeIndicator: React.FC<SwipeIndicatorProps> = ({
   direction,
-  color = theme.colors.success,
+  color,
 }) => {
+  const { theme } = useTheme();
+  const indicatorColor = color || theme.colors.success;
   const translateY = useSharedValue(0);
   const [isAnimating, setIsAnimating] = useState(true);
 
@@ -62,21 +64,14 @@ const SwipeIndicator: React.FC<SwipeIndicatorProps> = ({
   const rotation = direction === 'up' ? 180 : 0;
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { rotate: `${rotation}deg` },
-      { translateY: translateY.value },
-    ],
+    transform: [{ rotate: `${rotation}deg` }, { translateY: translateY.value }],
   }));
 
   const Chevron = () => (
-    <Svg
-      width={CHEVRON_SIZE}
-      height={CHEVRON_SIZE * 0.5}
-      viewBox="0 0 24 12"
-    >
+    <Svg width={CHEVRON_SIZE} height={CHEVRON_SIZE * 0.5} viewBox="0 0 24 12">
       <Path
         d="M2 2L12 10L22 2"
-        stroke={color}
+        stroke={indicatorColor}
         strokeWidth={3}
         strokeLinecap="round"
         strokeLinejoin="round"

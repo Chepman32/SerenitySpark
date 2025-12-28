@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, Pressable } from 'react-native';
 import Video from 'react-native-video';
-import { theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useApp } from '../contexts/AppContext';
 
 const SplashScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { navigateToHome } = useApp();
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -28,7 +29,7 @@ const SplashScreen: React.FC = () => {
         timerRef.current = null;
       }, delay);
     },
-    [clearTimer, navigateToHome]
+    [clearTimer, navigateToHome],
   );
 
   const handlePress = useCallback(() => goHome(0), [goHome]);
@@ -36,6 +37,8 @@ const SplashScreen: React.FC = () => {
   const handleVideoError = useCallback(() => goHome(0), [goHome]);
 
   useEffect(() => clearTimer, [clearTimer]);
+
+  const styles = createStyles(theme);
 
   return (
     <Pressable style={styles.container} onPress={handlePress}>
@@ -57,17 +60,18 @@ const SplashScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    video: {
+      width: '100%',
+      height: '100%',
+    },
+  });
 
 export default SplashScreen;

@@ -8,41 +8,74 @@
     "haptics": "Вибрация",
     "about": "О приложении",
     "version": "SerenitySpark v1.0.0",
-    "description": "Приложение для медитации с жестовым управлением.",
+    "description": "Приложение для медитации с управлением жестами.",
     "privacy": "Конфиденциальность: Все данные хранятся на вашем устройстве."
   },
-  "themes": {
-    "light": "Светлая",
-    "dark": "Тёмная",
-    "solar": "Солнечная",
-    "mono": "Моно"
-  },
+  "themes": { "light": "Светлая", "dark": "Тёмная", "solar": "Солнечная", "mono": "Моно" },
   "home": {
     "selectDuration": "Выберите длительность",
     "minutes": "мин",
     "start": "Начать",
     "nature": "Природа",
-    "music": "Музыка"
+    "music": "Музыка",
+    "focusAdvisor": "Рекомендация советника фокуса",
+    "confidence": "уверенность",
+    "focusBreak": "{{focus}} мин фокус · {{break}} мин перерыв",
+    "applySuggestion": "Применить рекомендацию",
+    "enableNotifications": "Включить уведомления",
+    "notificationMessage": "Уведомления напомнят о текущей сессии. Разрешите доступ в настройках или выберите Отмена.",
+    "grantPermissions": "Разрешить"
   },
   "session": {
     "meditation": "Медитация",
-    "swipeToEnd": "Смахните вниз для завершения",
+    "swipeToEnd": "Проведите вниз для завершения",
     "completed": "Сессия завершена",
-    "wellDone": "Отлично!"
+    "wellDone": "Отлично!",
+    "hardMode": "Сложный режим",
+    "hardModeMessage": "Выберите причину раннего завершения. Мы отследим это отдельно.",
+    "endEarly": "Завершить раньше",
+    "continueSession": "Продолжить сессию",
+    "lostFocus": "Потерял концентрацию",
+    "urgentTask": "Срочное дело",
+    "tooLong": "Слишком долго / усталость",
+    "needBreak": "Нужен перерыв"
   },
   "history": {
-    "title": "История",
-    "totalSessions": "Всего сессий",
-    "totalMinutes": "Всего минут",
-    "streak": "Текущая серия",
+    "title": "Ваш путь",
+    "back": "Назад",
+    "totalSessions": "Сессий",
+    "totalMinutes": "Минут",
+    "streak": "Дней подряд",
     "days": "дней",
-    "noSessions": "Пока нет сессий"
+    "noSessions": "Пока нет сессий. Начните медитировать!",
+    "completionRate": "Завершено",
+    "gaveUp": "Прервано",
+    "last7Days": "Последние 7 дней (мин)",
+    "last30Days": "Последние 30 дней (мин)",
+    "avgSession": "Средняя длительность",
+    "bestStreak": "Лучшая серия",
+    "today": "Сегодня",
+    "yesterday": "Вчера"
   },
-  "common": {
-    "on": "Вкл",
-    "off": "Выкл",
-    "cancel": "Отмена",
-    "confirm": "Подтвердить",
-    "save": "Сохранить"
-  }
+  "statistics": {
+    "title": "Статистика",
+    "close": "Закрыть",
+    "totalMinutes": "Всего минут",
+    "sessions": "сессий",
+    "completionRate": "Процент завершения",
+    "completed": "завершено",
+    "weeklyFocus": "Недельный фокус",
+    "last7Days": "Последние 7 дней",
+    "monthlyFocus": "Месячный фокус",
+    "last30Days": "Последние 30 дней",
+    "avgLength": "Средняя длительность",
+    "perSession": "За сессию",
+    "bestStreak": "Лучшая серия",
+    "current": "Текущая",
+    "mostProductive": "Самый продуктивный",
+    "dayOfWeek": "День недели",
+    "longestSession": "Самая длинная сессия",
+    "personalBest": "Личный рекорд"
+  },
+  "common": { "on": "Вкл", "off": "Выкл", "cancel": "Отмена", "confirm": "Подтвердить", "save": "Сохранить" }
 }

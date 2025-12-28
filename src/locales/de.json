@@ -11,38 +11,71 @@
     "description": "Eine gestengesteuerte Meditations-App.",
     "privacy": "Datenschutz: Alle Daten bleiben auf Ihrem Gerät."
   },
-  "themes": {
-    "light": "Hell",
-    "dark": "Dunkel",
-    "solar": "Solar",
-    "mono": "Mono"
-  },
+  "themes": { "light": "Hell", "dark": "Dunkel", "solar": "Solar", "mono": "Mono" },
   "home": {
     "selectDuration": "Dauer wählen",
     "minutes": "Min",
     "start": "Start",
     "nature": "Natur",
-    "music": "Musik"
+    "music": "Musik",
+    "focusAdvisor": "Fokus-Berater Vorschlag",
+    "confidence": "Konfidenz",
+    "focusBreak": "{{focus}} Min Fokus · {{break}} Min Pause",
+    "applySuggestion": "Vorschlag anwenden",
+    "enableNotifications": "Benachrichtigungen aktivieren",
+    "notificationMessage": "Benachrichtigungen erinnern Sie an laufende Sitzungen. Erlauben Sie den Zugriff in den Einstellungen oder wählen Sie Abbrechen.",
+    "grantPermissions": "Berechtigung erteilen"
   },
   "session": {
     "meditation": "Meditation",
     "swipeToEnd": "Nach unten wischen zum Beenden",
     "completed": "Sitzung abgeschlossen",
-    "wellDone": "Gut gemacht!"
+    "wellDone": "Gut gemacht!",
+    "hardMode": "Schwerer Modus",
+    "hardModeMessage": "Wählen Sie den Grund für das vorzeitige Beenden. Wir erfassen dies separat.",
+    "endEarly": "Vorzeitig beenden",
+    "continueSession": "Sitzung fortsetzen",
+    "lostFocus": "Fokus verloren",
+    "urgentTask": "Dringende Aufgabe",
+    "tooLong": "Zu lang / Müdigkeit",
+    "needBreak": "Pause nötig"
   },
   "history": {
-    "title": "Verlauf",
-    "totalSessions": "Gesamtsitzungen",
-    "totalMinutes": "Gesamtminuten",
-    "streak": "Aktuelle Serie",
+    "title": "Ihre Reise",
+    "back": "Zurück",
+    "totalSessions": "Sitzungen",
+    "totalMinutes": "Minuten",
+    "streak": "Tage-Serie",
     "days": "Tage",
-    "noSessions": "Noch keine Sitzungen"
+    "noSessions": "Noch keine Sitzungen. Beginnen Sie zu meditieren!",
+    "completionRate": "Abgeschlossen",
+    "gaveUp": "Aufgegeben",
+    "last7Days": "Letzte 7 Tage (Min)",
+    "last30Days": "Letzte 30 Tage (Min)",
+    "avgSession": "Durchschn. Dauer",
+    "bestStreak": "Beste Serie",
+    "today": "Heute",
+    "yesterday": "Gestern"
   },
-  "common": {
-    "on": "An",
-    "off": "Aus",
-    "cancel": "Abbrechen",
-    "confirm": "Bestätigen",
-    "save": "Speichern"
-  }
+  "statistics": {
+    "title": "Statistiken",
+    "close": "Schließen",
+    "totalMinutes": "Gesamtminuten",
+    "sessions": "Sitzungen",
+    "completionRate": "Abschlussrate",
+    "completed": "abgeschlossen",
+    "weeklyFocus": "Wöchentlicher Fokus",
+    "last7Days": "Letzte 7 Tage",
+    "monthlyFocus": "Monatlicher Fokus",
+    "last30Days": "Letzte 30 Tage",
+    "avgLength": "Durchschn. Länge",
+    "perSession": "Pro Sitzung",
+    "bestStreak": "Beste Serie",
+    "current": "Aktuell",
+    "mostProductive": "Produktivster",
+    "dayOfWeek": "Wochentag",
+    "longestSession": "Längste Sitzung",
+    "personalBest": "Persönlicher Rekord"
+  },
+  "common": { "on": "An", "off": "Aus", "cancel": "Abbrechen", "confirm": "Bestätigen", "save": "Speichern" }
 }

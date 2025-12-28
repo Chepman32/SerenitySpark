@@ -1,48 +1,81 @@
 {
   "settings": {
     "title": "Ajustes",
-    "back": "Atrás",
+    "back": "Volver",
     "theme": "Tema",
     "language": "Idioma",
     "sound": "Sonido",
-    "haptics": "Háptica",
+    "haptics": "Hápticos",
     "about": "Acerca de",
     "version": "SerenitySpark v1.0.0",
     "description": "Una app de meditación basada en gestos.",
     "privacy": "Privacidad: Todos tus datos permanecen en tu dispositivo."
   },
-  "themes": {
-    "light": "Claro",
-    "dark": "Oscuro",
-    "solar": "Solar",
-    "mono": "Mono"
-  },
+  "themes": { "light": "Claro", "dark": "Oscuro", "solar": "Solar", "mono": "Mono" },
   "home": {
     "selectDuration": "Seleccionar duración",
     "minutes": "min",
     "start": "Iniciar",
     "nature": "Naturaleza",
-    "music": "Música"
+    "music": "Música",
+    "focusAdvisor": "Sugerencia del asesor de enfoque",
+    "confidence": "confianza",
+    "focusBreak": "{{focus}} min enfoque · {{break}} min descanso",
+    "applySuggestion": "Aplicar sugerencia",
+    "enableNotifications": "Activar notificaciones",
+    "notificationMessage": "Las notificaciones te recuerdan cuando una sesión está en curso. Permite el acceso en ajustes o elige Cancelar.",
+    "grantPermissions": "Permitir"
   },
   "session": {
     "meditation": "Meditación",
     "swipeToEnd": "Desliza hacia abajo para terminar",
     "completed": "Sesión completada",
-    "wellDone": "¡Bien hecho!"
+    "wellDone": "¡Bien hecho!",
+    "hardMode": "Modo difícil",
+    "hardModeMessage": "Elige por qué terminas antes. Lo registraremos por separado.",
+    "endEarly": "Terminar antes",
+    "continueSession": "Continuar sesión",
+    "lostFocus": "Perdí el enfoque",
+    "urgentTask": "Tarea urgente",
+    "tooLong": "Muy largo / fatiga",
+    "needBreak": "Necesito un descanso"
   },
   "history": {
-    "title": "Historial",
-    "totalSessions": "Sesiones totales",
-    "totalMinutes": "Minutos totales",
-    "streak": "Racha actual",
+    "title": "Tu viaje",
+    "back": "Volver",
+    "totalSessions": "Sesiones",
+    "totalMinutes": "Minutos",
+    "streak": "Racha de días",
     "days": "días",
-    "noSessions": "Aún no hay sesiones"
+    "noSessions": "Aún no hay sesiones. ¡Empieza a meditar!",
+    "completionRate": "Completadas",
+    "gaveUp": "Abandonadas",
+    "last7Days": "Últimos 7 días (min)",
+    "last30Days": "Últimos 30 días (min)",
+    "avgSession": "Duración promedio",
+    "bestStreak": "Mejor racha",
+    "today": "Hoy",
+    "yesterday": "Ayer"
   },
-  "common": {
-    "on": "Activado",
-    "off": "Desactivado",
-    "cancel": "Cancelar",
-    "confirm": "Confirmar",
-    "save": "Guardar"
-  }
+  "statistics": {
+    "title": "Estadísticas",
+    "close": "Cerrar",
+    "totalMinutes": "Minutos totales",
+    "sessions": "sesiones",
+    "completionRate": "Tasa de completado",
+    "completed": "completadas",
+    "weeklyFocus": "Enfoque semanal",
+    "last7Days": "Últimos 7 días",
+    "monthlyFocus": "Enfoque mensual",
+    "last30Days": "Últimos 30 días",
+    "avgLength": "Duración promedio",
+    "perSession": "Por sesión",
+    "bestStreak": "Mejor racha",
+    "current": "Actual",
+    "mostProductive": "Más productivo",
+    "dayOfWeek": "Día de la semana",
+    "longestSession": "Sesión más larga",
+    "personalBest": "Récord personal"
+  },
+  "common": { "on": "Activado", "off": "Desactivado", "cancel": "Cancelar", "confirm": "Confirmar", "save": "Guardar" }
 }

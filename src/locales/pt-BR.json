@@ -9,40 +9,73 @@
     "about": "Sobre",
     "version": "SerenitySpark v1.0.0",
     "description": "Um app de meditação baseado em gestos.",
-    "privacy": "Privacidade: Todos os seus dados ficam no seu dispositivo."
+    "privacy": "Privacidade: Todos os dados ficam no seu dispositivo."
   },
-  "themes": {
-    "light": "Claro",
-    "dark": "Escuro",
-    "solar": "Solar",
-    "mono": "Mono"
-  },
+  "themes": { "light": "Claro", "dark": "Escuro", "solar": "Solar", "mono": "Mono" },
   "home": {
     "selectDuration": "Selecionar duração",
     "minutes": "min",
     "start": "Iniciar",
     "nature": "Natureza",
-    "music": "Música"
+    "music": "Música",
+    "focusAdvisor": "Sugestão do consultor de foco",
+    "confidence": "confiança",
+    "focusBreak": "{{focus}} min foco · {{break}} min pausa",
+    "applySuggestion": "Aplicar sugestão",
+    "enableNotifications": "Ativar notificações",
+    "notificationMessage": "Notificações lembram você de sessões em andamento. Permita nas configurações ou escolha Cancelar.",
+    "grantPermissions": "Permitir"
   },
   "session": {
     "meditation": "Meditação",
     "swipeToEnd": "Deslize para baixo para encerrar",
     "completed": "Sessão concluída",
-    "wellDone": "Muito bem!"
+    "wellDone": "Muito bem!",
+    "hardMode": "Modo difícil",
+    "hardModeMessage": "Escolha por que está encerrando cedo. Registraremos separadamente.",
+    "endEarly": "Encerrar cedo",
+    "continueSession": "Continuar sessão",
+    "lostFocus": "Perdi o foco",
+    "urgentTask": "Tarefa urgente",
+    "tooLong": "Muito longo / cansaço",
+    "needBreak": "Preciso de uma pausa"
   },
   "history": {
-    "title": "Histórico",
-    "totalSessions": "Total de sessões",
-    "totalMinutes": "Total de minutos",
-    "streak": "Sequência atual",
+    "title": "Sua jornada",
+    "back": "Voltar",
+    "totalSessions": "Sessões",
+    "totalMinutes": "Minutos",
+    "streak": "Sequência de dias",
     "days": "dias",
-    "noSessions": "Nenhuma sessão ainda"
+    "noSessions": "Nenhuma sessão ainda. Comece a meditar!",
+    "completionRate": "Concluídas",
+    "gaveUp": "Desistências",
+    "last7Days": "Últimos 7 dias (min)",
+    "last30Days": "Últimos 30 dias (min)",
+    "avgSession": "Duração média",
+    "bestStreak": "Melhor sequência",
+    "today": "Hoje",
+    "yesterday": "Ontem"
   },
-  "common": {
-    "on": "Ligado",
-    "off": "Desligado",
-    "cancel": "Cancelar",
-    "confirm": "Confirmar",
-    "save": "Salvar"
-  }
+  "statistics": {
+    "title": "Estatísticas",
+    "close": "Fechar",
+    "totalMinutes": "Minutos totais",
+    "sessions": "sessões",
+    "completionRate": "Taxa de conclusão",
+    "completed": "concluídas",
+    "weeklyFocus": "Foco semanal",
+    "last7Days": "Últimos 7 dias",
+    "monthlyFocus": "Foco mensal",
+    "last30Days": "Últimos 30 dias",
+    "avgLength": "Duração média",
+    "perSession": "Por sessão",
+    "bestStreak": "Melhor sequência",
+    "current": "Atual",
+    "mostProductive": "Mais produtivo",
+    "dayOfWeek": "Dia da semana",
+    "longestSession": "Sessão mais longa",
+    "personalBest": "Recorde pessoal"
+  },
+  "common": { "on": "Ligado", "off": "Desligado", "cancel": "Cancelar", "confirm": "Confirmar", "save": "Salvar" }
 }

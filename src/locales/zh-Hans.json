@@ -8,41 +8,74 @@
     "haptics": "触感反馈",
     "about": "关于",
     "version": "SerenitySpark v1.0.0",
-    "description": "一款手势驱动的冥想应用，带来正念时刻。",
-    "privacy": "隐私：您的所有数据都保存在设备上。"
+    "description": "手势驱动的冥想应用。",
+    "privacy": "隐私：所有数据保存在您的设备上。"
   },
-  "themes": {
-    "light": "浅色",
-    "dark": "深色",
-    "solar": "暖阳",
-    "mono": "单色"
-  },
+  "themes": { "light": "浅色", "dark": "深色", "solar": "暖阳", "mono": "单色" },
   "home": {
     "selectDuration": "选择时长",
     "minutes": "分钟",
     "start": "开始",
     "nature": "自然",
-    "music": "音乐"
+    "music": "音乐",
+    "focusAdvisor": "专注顾问建议",
+    "confidence": "置信度",
+    "focusBreak": "{{focus}}分钟专注 · {{break}}分钟休息",
+    "applySuggestion": "应用建议",
+    "enableNotifications": "启用通知",
+    "notificationMessage": "通知可以提醒您正在进行的冥想。请在设置中授权，或选择取消继续。",
+    "grantPermissions": "授予权限"
   },
   "session": {
     "meditation": "冥想",
-    "swipeToEnd": "向下滑动结束",
-    "completed": "冥想完成",
-    "wellDone": "做得好！"
+    "swipeToEnd": "下滑结束",
+    "completed": "完成冥想",
+    "wellDone": "做得好！",
+    "hardMode": "困难模式",
+    "hardModeMessage": "选择提前结束的原因，我们会单独记录。",
+    "endEarly": "提前结束",
+    "continueSession": "继续冥想",
+    "lostFocus": "失去专注",
+    "urgentTask": "紧急任务",
+    "tooLong": "时间太长/疲劳",
+    "needBreak": "需要休息"
   },
   "history": {
-    "title": "历史",
-    "totalSessions": "总次数",
-    "totalMinutes": "总分钟数",
+    "title": "您的旅程",
+    "back": "返回",
+    "totalSessions": "冥想次数",
+    "totalMinutes": "分钟",
     "streak": "连续天数",
     "days": "天",
-    "noSessions": "暂无记录"
+    "noSessions": "还没有冥想记录，开始吧！",
+    "completionRate": "完成率",
+    "gaveUp": "放弃次数",
+    "last7Days": "近7天（分钟）",
+    "last30Days": "近30天（分钟）",
+    "avgSession": "平均时长",
+    "bestStreak": "最佳连续",
+    "today": "今天",
+    "yesterday": "昨天"
   },
-  "common": {
-    "on": "开",
-    "off": "关",
-    "cancel": "取消",
-    "confirm": "确认",
-    "save": "保存"
-  }
+  "statistics": {
+    "title": "统计",
+    "close": "关闭",
+    "totalMinutes": "总分钟数",
+    "sessions": "次冥想",
+    "completionRate": "完成率",
+    "completed": "已完成",
+    "weeklyFocus": "本周专注",
+    "last7Days": "近7天",
+    "monthlyFocus": "本月专注",
+    "last30Days": "近30天",
+    "avgLength": "平均时长",
+    "perSession": "每次冥想",
+    "bestStreak": "最佳连续",
+    "current": "当前",
+    "mostProductive": "最高效",
+    "dayOfWeek": "星期几",
+    "longestSession": "最长冥想",
+    "personalBest": "个人最佳"
+  },
+  "common": { "on": "开", "off": "关", "cancel": "取消", "confirm": "确认", "save": "保存" }
 }

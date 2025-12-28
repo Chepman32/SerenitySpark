@@ -5,7 +5,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { theme, animations } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../contexts/ThemeContext';
+import { animations } from '../constants/theme';
 import HapticService from '../services/HapticService';
 
 interface StartButtonProps {
@@ -19,6 +21,8 @@ const StartButton: React.FC<StartButtonProps> = ({
   onPress,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
 
   const handlePressIn = () => {
@@ -42,6 +46,8 @@ const StartButton: React.FC<StartButtonProps> = ({
     transform: [{ scale: scale.value }],
   }));
 
+  const styles = createStyles(theme);
+
   return (
     <AnimatedPressable
       style={[styles.button, disabled && styles.buttonDisabled, animatedStyle]}
@@ -50,34 +56,35 @@ const StartButton: React.FC<StartButtonProps> = ({
       onPress={handlePress}
       disabled={disabled}
     >
-      <Text style={styles.text}>▶ Start</Text>
+      <Text style={styles.text}>▶ {t('home.start')}</Text>
     </AnimatedPressable>
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
-    borderRadius: theme.borderRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: theme.colors.surface,
-    opacity: 0.5,
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: theme.colors.text,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    button: {
+      backgroundColor: theme.colors.primary,
+      paddingHorizontal: theme.spacing.xl,
+      paddingVertical: theme.spacing.lg,
+      borderRadius: theme.borderRadius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    buttonDisabled: {
+      backgroundColor: theme.colors.surface,
+      opacity: 0.5,
+    },
+    text: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+  });
 
 export default StartButton;

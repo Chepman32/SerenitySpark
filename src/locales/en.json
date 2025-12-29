@@ -8,6 +8,8 @@
     "haptics": "Haptics",
     "notifications": "Notifications",
     "notificationsDesc": "Reminder notifications",
+    "notificationsOn": "Reminders enabled",
+    "notificationsOff": "Reminders disabled",
     "reminderPeriods": "Reminder Periods",
     "morning": "Morning",
     "day": "Day",
@@ -16,6 +18,27 @@
     "version": "SerenitySpark v1.0.0",
     "description": "A gesture-driven meditation app for mindful moments.",
     "privacy": "Privacy: All your data stays on your device."
+  },
+  "notificationSettings": {
+    "title": "Notifications",
+    "enableReminders": "Daily Reminders",
+    "enableRemindersDesc": "Get reminded to meditate at your preferred times",
+    "morningReminder": "Morning Reminder",
+    "dayReminder": "Afternoon Reminder",
+    "eveningReminder": "Evening Reminder",
+    "enabled": "Enabled",
+    "time": "Time",
+    "selectTime": "Select Time",
+    "done": "Done",
+    "info": "Reminders will be sent daily at your selected times. Make sure notifications are enabled in your device settings."
+  },
+  "notifications": {
+    "morningTitle": "Good morning! ☀️",
+    "morningBody": "Start your day with a moment of calm. A short meditation can set a positive tone for the hours ahead.",
+    "dayTitle": "Time for a mindful break",
+    "dayBody": "Take a few minutes to reset and refocus. Your mind will thank you.",
+    "eveningTitle": "Wind down time 🌙",
+    "eveningBody": "End your day peacefully. A meditation session can help you relax and prepare for restful sleep."
   },
   "themes": {
     "light": "Light",

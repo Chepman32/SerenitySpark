@@ -26,6 +26,18 @@ const DEFAULT_SETTINGS: UserSettings = {
   theme: 'dark',
   soundEnabled: true,
   hapticsEnabled: true,
+  notificationsEnabled: false,
+  notificationPeriods: {
+    morning: true,
+    day: true,
+    evening: true,
+  },
+  reminderTimes: {
+    morning: { hour: 8, minute: 0 },
+    day: { hour: 13, minute: 0 },
+    evening: { hour: 20, minute: 0 },
+  },
+  hasAskedNotificationPermission: false,
 };
 
 const PREMIUM_FEATURES: PremiumFeature[] = [

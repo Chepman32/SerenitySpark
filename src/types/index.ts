@@ -12,6 +12,11 @@ export interface SessionRecord {
   };
 }
 
+export interface ReminderTime {
+  hour: number;
+  minute: number;
+}
+
 export interface UserSettings {
   defaultNatureTrack: string;
   defaultMusicTrack: string;
@@ -31,6 +36,11 @@ export interface UserSettings {
     morning: boolean;
     day: boolean;
     evening: boolean;
+  };
+  reminderTimes: {
+    morning: ReminderTime;
+    day: ReminderTime;
+    evening: ReminderTime;
   };
   hasAskedNotificationPermission: boolean;
 }

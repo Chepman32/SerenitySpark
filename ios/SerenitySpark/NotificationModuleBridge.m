@@ -49,6 +49,48 @@ RCT_EXPORT_METHOD(scheduleReminder : (NSString *)title body:(NSString *)body)
                                                         withCompletionHandler:nil];
 }
 
+RCT_EXPORT_METHOD(scheduleDailyReminder:(NSString *)identifier
+                  title:(NSString *)title
+                  body:(NSString *)body
+                  hour:(NSInteger)hour
+                  minute:(NSInteger)minute)
+{
+  UNMutableNotificationContent *content = [UNMutableNotificationContent new];
+  content.title = title ?: @"";
+  content.body = body ?: @"";
+  content.sound = [UNNotificationSound defaultSound];
+
+  NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
+  dateComponents.hour = hour;
+  dateComponents.minute = minute;
+
+  UNCalendarNotificationTrigger *trigger =
+    [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:dateComponents repeats:YES];
+
+  UNNotificationRequest *request =
+    [UNNotificationRequest requestWithIdentifier:identifier
+                                         content:content
+                                         trigger:trigger];
+
+  [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:request
+                                                        withCompletionHandler:^(NSError *error) {
+    if (error) {
+      NSLog(@"Failed to schedule notification: %@", error.localizedDescription);
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(cancelScheduledReminder:(NSString *)identifier)
+{
+  [[UNUserNotificationCenter currentNotificationCenter]
+    removePendingNotificationRequestsWithIdentifiers:@[identifier]];
+}
+
+RCT_EXPORT_METHOD(cancelAllScheduledReminders)
+{
+  [[UNUserNotificationCenter currentNotificationCenter] removeAllPendingNotificationRequests];
+}
+
 RCT_EXPORT_METHOD(clearAll)
 {
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];

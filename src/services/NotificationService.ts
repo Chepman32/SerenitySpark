@@ -1,4 +1,10 @@
-import { Linking, NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import {
+  Linking,
+  NativeModules,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
+import { ReminderTime } from '../types';
 
 const { NotificationModule } = NativeModules;
 
@@ -17,6 +23,15 @@ type AndroidNotificationModule = {
   isPermissionGranted?: () => Promise<boolean>;
   requestPermissions?: () => Promise<boolean>;
   scheduleReminder?: (title: string, body: string) => void;
+  scheduleDailyReminder?: (
+    identifier: string,
+    title: string,
+    body: string,
+    hour: number,
+    minute: number,
+  ) => void;
+  cancelScheduledReminder?: (identifier: string) => void;
+  cancelAllScheduledReminders?: () => void;
   clearAll?: () => void;
 };
 
@@ -213,6 +228,110 @@ class NotificationService {
       await Linking.openSettings();
     } catch (error) {
       console.error('Failed to open app settings:', error);
+    }
+  }
+
+  async scheduleDailyReminder(
+    identifier: string,
+    title: string,
+    body: string,
+    time: ReminderTime,
+  ): Promise<void> {
+    const hasPermission = await this.hasPermission();
+    if (!hasPermission) {
+      console.warn(
+        'Cannot schedule reminder: notification permission not granted',
+      );
+      return;
+    }
+
+    const module = this.nativeModule;
+    if (!module?.scheduleDailyReminder) {
+      console.warn('scheduleDailyReminder not available on this platform');
+      return;
+    }
+
+    try {
+      module.scheduleDailyReminder(
+        identifier,
+        title,
+        body,
+        time.hour,
+        time.minute,
+      );
+    } catch (error) {
+      console.error('Failed to schedule daily reminder:', error);
+    }
+  }
+
+  async cancelScheduledReminder(identifier: string): Promise<void> {
+    const module = this.nativeModule;
+    if (!module?.cancelScheduledReminder) {
+      console.warn('cancelScheduledReminder not available on this platform');
+      return;
+    }
+
+    try {
+      module.cancelScheduledReminder(identifier);
+    } catch (error) {
+      console.error('Failed to cancel scheduled reminder:', error);
+    }
+  }
+
+  async cancelAllScheduledReminders(): Promise<void> {
+    const module = this.nativeModule;
+    if (!module?.cancelAllScheduledReminders) {
+      console.warn(
+        'cancelAllScheduledReminders not available on this platform',
+      );
+      return;
+    }
+
+    try {
+      module.cancelAllScheduledReminders();
+    } catch (error) {
+      console.error('Failed to cancel all scheduled reminders:', error);
+    }
+  }
+
+  async scheduleAllReminders(
+    periods: { morning: boolean; day: boolean; evening: boolean },
+    times: { morning: ReminderTime; day: ReminderTime; evening: ReminderTime },
+    messages: {
+      morning: { title: string; body: string };
+      day: { title: string; body: string };
+      evening: { title: string; body: string };
+    },
+  ): Promise<void> {
+    // Cancel all existing reminders first
+    await this.cancelAllScheduledReminders();
+
+    // Schedule enabled reminders
+    if (periods.morning) {
+      await this.scheduleDailyReminder(
+        'morning-reminder',
+        messages.morning.title,
+        messages.morning.body,
+        times.morning,
+      );
+    }
+
+    if (periods.day) {
+      await this.scheduleDailyReminder(
+        'day-reminder',
+        messages.day.title,
+        messages.day.body,
+        times.day,
+      );
+    }
+
+    if (periods.evening) {
+      await this.scheduleDailyReminder(
+        'evening-reminder',
+        messages.evening.title,
+        messages.evening.body,
+        times.evening,
+      );
     }
   }
 }

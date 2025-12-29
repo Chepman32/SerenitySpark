@@ -20,6 +20,7 @@ import SessionScreen from './src/screens/SessionScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import StatisticsScreen from './src/screens/StatisticsScreen';
+import NotificationSettingsScreen from './src/screens/NotificationSettingsScreen';
 
 const AppNavigator: React.FC = () => {
   const { currentScreen } = useApp();
@@ -41,7 +42,12 @@ const AppNavigator: React.FC = () => {
 
     // Skip fade-in for swipe-navigated screens to avoid white blink
     // These screens already have smooth exit animations via gestures
-    const swipeNavigatedScreens = ['Home', 'Settings', 'Statistics'];
+    const swipeNavigatedScreens = [
+      'Home',
+      'Settings',
+      'Statistics',
+      'NotificationSettings',
+    ];
     const isSwipeTransition =
       swipeNavigatedScreens.includes(currentScreen) &&
       previousScreen &&
@@ -88,6 +94,8 @@ const AppNavigator: React.FC = () => {
         return <SettingsScreen />;
       case 'Statistics':
         return <StatisticsScreen />;
+      case 'NotificationSettings':
+        return <NotificationSettingsScreen />;
       default:
         return <HomeScreen />;
     }

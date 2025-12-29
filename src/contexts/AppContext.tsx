@@ -6,7 +6,8 @@ type Screen =
   | 'Session'
   | 'History'
   | 'Settings'
-  | 'Statistics';
+  | 'Statistics'
+  | 'NotificationSettings';
 
 interface AppContextType {
   currentScreen: Screen;
@@ -16,6 +17,7 @@ interface AppContextType {
   navigateToHistory: () => void;
   navigateToSettings: () => void;
   navigateToStatistics: () => void;
+  navigateToNotificationSettings: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const navigateToHistory = () => setCurrentScreen('History');
   const navigateToSettings = () => setCurrentScreen('Settings');
   const navigateToStatistics = () => setCurrentScreen('Statistics');
+  const navigateToNotificationSettings = () => setCurrentScreen('NotificationSettings');
 
   return (
     <AppContext.Provider
@@ -41,6 +44,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
         navigateToHistory,
         navigateToSettings,
         navigateToStatistics,
+        navigateToNotificationSettings,
       }}
     >
       {children}

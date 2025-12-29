@@ -72,6 +72,28 @@ const SettingsScreen: React.FC = () => {
   const panRef = React.useRef<any>(null);
   const scrollY = useSharedValue(0);
 
+  // Sync notification toggle with actual system permission status
+  React.useEffect(() => {
+    const syncNotificationStatus = async () => {
+      const status = await NotificationService.getPermissionStatus();
+      const isGranted =
+        status === 'authorized' ||
+        status === 'provisional' ||
+        status === 'ephemeral';
+
+      // If system permissions are granted but app setting is off, sync it
+      if (isGranted && !settings.notificationsEnabled) {
+        updateSettings({ notificationsEnabled: true });
+      }
+      // If system permissions are denied but app setting is on, sync it
+      if (!isGranted && settings.notificationsEnabled && status === 'denied') {
+        updateSettings({ notificationsEnabled: false });
+      }
+    };
+
+    syncNotificationStatus();
+  }, []);
+
   // Ensure notificationPeriods has default values
   const notificationPeriods = settings.notificationPeriods || {
     morning: true,

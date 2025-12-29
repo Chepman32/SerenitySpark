@@ -227,9 +227,6 @@ const SettingsScreen: React.FC = () => {
       <Animated.View style={[styles.container, animatedStyle]}>
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
-            <Pressable onPress={navigateToHome}>
-              <Text style={styles.backButton}>← {t('settings.back')}</Text>
-            </Pressable>
             <Text style={styles.title}>{t('settings.title')}</Text>
           </View>
 
@@ -492,11 +489,6 @@ const createStyles = (theme: any) =>
       padding: theme.spacing.lg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
-    },
-    backButton: {
-      fontSize: 16,
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.sm,
     },
     title: {
       fontSize: 28,

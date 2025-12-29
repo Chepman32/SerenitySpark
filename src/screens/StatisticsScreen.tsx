@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Gesture,
@@ -34,32 +34,38 @@ const StatisticBlock: React.FC<{
   );
 };
 
-const createBlockStyles = (theme: any) =>
-  StyleSheet.create({
+const { width: screenWidth } = Dimensions.get('window');
+
+const createBlockStyles = (theme: any) => {
+  const cardWidth = (screenWidth - theme.spacing.lg * 2 - theme.spacing.md) / 2;
+  return StyleSheet.create({
     statCard: {
-      width: '48%',
+      width: cardWidth,
+      minHeight: 120,
       backgroundColor: theme.colors.surface,
       borderRadius: theme.borderRadius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.lg,
       borderWidth: 1,
       borderColor: 'rgba(78,205,196,0.2)',
+      justifyContent: 'center',
     },
     statValue: {
       color: theme.colors.primary,
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: '700',
     },
     statLabel: {
       color: theme.colors.text,
-      fontSize: 14,
-      marginTop: theme.spacing.xs,
+      fontSize: 15,
+      marginTop: theme.spacing.sm,
     },
     statSub: {
       color: theme.colors.textSecondary,
-      fontSize: 12,
-      marginTop: 4,
+      fontSize: 13,
+      marginTop: 6,
     },
   });
+};
 
 const StatisticsScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -119,9 +125,6 @@ const StatisticsScreen: React.FC = () => {
       <Animated.View style={[styles.container, animatedStyle]}>
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
-            <Pressable onPress={navigateToHome}>
-              <Text style={styles.backButton}>↓ {t('statistics.close')}</Text>
-            </Pressable>
             <Text style={styles.title}>{t('statistics.title')}</Text>
           </View>
 
@@ -199,11 +202,6 @@ const createStyles = (theme: any) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.surface,
     },
-    backButton: {
-      fontSize: 16,
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.sm,
-    },
     title: {
       fontSize: 28,
       fontWeight: '600',
@@ -215,7 +213,7 @@ const createStyles = (theme: any) =>
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: theme.spacing.sm,
+      gap: theme.spacing.md,
     },
   });
 

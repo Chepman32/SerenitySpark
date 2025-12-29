@@ -167,7 +167,11 @@ const SettingsScreen: React.FC = () => {
         .withRef(panRef)
         .onUpdate(event => {
           'worklet';
-          if (scrollY.value > 0 && event.translationY > 0) {
+          if (event.translationY <= 0) {
+            translateY.value = 0;
+            return;
+          }
+          if (scrollY.value > 0) {
             translateY.value = 0;
             return;
           }
@@ -176,23 +180,16 @@ const SettingsScreen: React.FC = () => {
         .onEnd(event => {
           'worklet';
           const threshold = 80;
-          if (scrollY.value > 0) {
+          const isScrollingContent = scrollY.value > 0;
+
+          if (event.translationY <= 0 || isScrollingContent) {
             translateY.value = withTiming(0, { duration: 200 });
             return;
           }
+
           if (event.translationY > threshold) {
             translateY.value = withTiming(
               screenHeight,
-              { duration: 220 },
-              finished => {
-                if (finished) {
-                  runOnJS(navigateToHome)();
-                }
-              },
-            );
-          } else if (event.translationY < -threshold) {
-            translateY.value = withTiming(
-              -screenHeight,
               { duration: 220 },
               finished => {
                 if (finished) {

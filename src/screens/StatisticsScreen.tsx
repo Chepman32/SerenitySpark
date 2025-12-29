@@ -128,6 +128,8 @@ const StatisticsScreen: React.FC = () => {
           <GHScrollView
             contentContainerStyle={styles.content}
             simultaneousHandlers={panRef}
+            bounces={false}
+            overScrollMode="never"
           >
             <View style={styles.grid}>
               <StatisticBlock

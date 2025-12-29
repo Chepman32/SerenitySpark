@@ -25,6 +25,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useApp } from '../contexts/AppContext';
 import { ThemeType } from '../constants/themes';
+import NotificationService from '../services/NotificationService';
 
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -71,6 +72,13 @@ const SettingsScreen: React.FC = () => {
   const panRef = React.useRef<any>(null);
   const scrollY = useSharedValue(0);
 
+  // Ensure notificationPeriods has default values
+  const notificationPeriods = settings.notificationPeriods || {
+    morning: true,
+    day: true,
+    evening: true,
+  };
+
   const currentLanguage =
     LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
@@ -94,6 +102,41 @@ const SettingsScreen: React.FC = () => {
 
   const toggleHaptics = () => {
     updateSettings({ hapticsEnabled: !settings.hapticsEnabled });
+  };
+
+  const toggleNotifications = async () => {
+    if (!settings.notificationsEnabled) {
+      // Turning on - check permissions first
+      const status = await NotificationService.getPermissionStatus();
+      if (
+        status === 'authorized' ||
+        status === 'provisional' ||
+        status === 'ephemeral'
+      ) {
+        updateSettings({ notificationsEnabled: true });
+      } else {
+        // Request permissions
+        const granted = await NotificationService.prepare();
+        if (granted) {
+          updateSettings({ notificationsEnabled: true });
+        } else {
+          // Open settings if denied
+          NotificationService.openSettings();
+        }
+      }
+    } else {
+      // Turning off
+      updateSettings({ notificationsEnabled: false });
+    }
+  };
+
+  const toggleNotificationPeriod = (period: 'morning' | 'day' | 'evening') => {
+    updateSettings({
+      notificationPeriods: {
+        ...notificationPeriods,
+        [period]: !notificationPeriods[period],
+      },
+    });
   };
 
   const gesture = useMemo(
@@ -302,6 +345,92 @@ const SettingsScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* Notifications Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {t('settings.notifications')}
+              </Text>
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>
+                    {t('settings.notificationsDesc')}
+                  </Text>
+                </View>
+                <Switch
+                  value={settings.notificationsEnabled}
+                  onValueChange={toggleNotifications}
+                  trackColor={{
+                    false: theme.colors.border,
+                    true: theme.colors.primary,
+                  }}
+                  thumbColor={theme.colors.text}
+                />
+              </View>
+
+              {settings.notificationsEnabled && (
+                <View style={styles.periodContainer}>
+                  <Text style={styles.periodTitle}>
+                    {t('settings.reminderPeriods')}
+                  </Text>
+                  <View style={styles.periodRow}>
+                    <Pressable
+                      style={[
+                        styles.periodChip,
+                        notificationPeriods.morning &&
+                          styles.periodChipSelected,
+                      ]}
+                      onPress={() => toggleNotificationPeriod('morning')}
+                    >
+                      <Text
+                        style={[
+                          styles.periodChipText,
+                          notificationPeriods.morning &&
+                            styles.periodChipTextSelected,
+                        ]}
+                      >
+                        🌅 {t('settings.morning')}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.periodChip,
+                        notificationPeriods.day && styles.periodChipSelected,
+                      ]}
+                      onPress={() => toggleNotificationPeriod('day')}
+                    >
+                      <Text
+                        style={[
+                          styles.periodChipText,
+                          notificationPeriods.day &&
+                            styles.periodChipTextSelected,
+                        ]}
+                      >
+                        ☀️ {t('settings.day')}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.periodChip,
+                        notificationPeriods.evening &&
+                          styles.periodChipSelected,
+                      ]}
+                      onPress={() => toggleNotificationPeriod('evening')}
+                    >
+                      <Text
+                        style={[
+                          styles.periodChipText,
+                          notificationPeriods.evening &&
+                            styles.periodChipTextSelected,
+                        ]}
+                      >
+                        🌙 {t('settings.evening')}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+            </View>
+
             {/* About Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
@@ -476,6 +605,42 @@ const createStyles = (theme: any) =>
     checkmark: {
       fontSize: 18,
       color: theme.colors.primary,
+    },
+    periodContainer: {
+      marginTop: theme.spacing.md,
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+    },
+    periodTitle: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      marginBottom: theme.spacing.sm,
+    },
+    periodRow: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+    },
+    periodChip: {
+      flex: 1,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.sm,
+      borderRadius: theme.borderRadius.sm,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      alignItems: 'center',
+    },
+    periodChipSelected: {
+      borderColor: theme.colors.primary,
+      backgroundColor: theme.colors.primary + '20',
+    },
+    periodChipText: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+    },
+    periodChipTextSelected: {
+      color: theme.colors.primary,
+      fontWeight: '600',
     },
   });
 

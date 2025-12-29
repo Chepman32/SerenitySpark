@@ -36,6 +36,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     theme: 'dark',
     soundEnabled: true,
     hapticsEnabled: true,
+    notificationsEnabled: false,
+    notificationPeriods: {
+      morning: true,
+      day: true,
+      evening: true,
+    },
   });
   const [isLoaded, setIsLoaded] = useState(false);
 

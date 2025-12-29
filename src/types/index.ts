@@ -26,6 +26,12 @@ export interface UserSettings {
   theme: 'light' | 'dark' | 'solar' | 'mono';
   soundEnabled: boolean;
   hapticsEnabled: boolean;
+  notificationsEnabled: boolean;
+  notificationPeriods: {
+    morning: boolean;
+    day: boolean;
+    evening: boolean;
+  };
 }
 
 export interface AudioTrack {

@@ -265,7 +265,7 @@ const SessionScreen: React.FC = () => {
     dismissProgress.value = withTiming(
       1,
       {
-        duration: 400,
+        duration: 450,
         easing: Easing.out(Easing.cubic),
       },
       finished => {

@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Switch,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -59,12 +60,51 @@ const LANGUAGES = [
   { code: 'fil', name: 'Filipino', nativeName: 'Filipino' },
 ];
 
+const getFlagSource = (languageCode: string) => {
+  const flagMap: Record<string, any> = {
+    'en': require('../assets/icons/flags/en.png'),
+    'zh-Hans': require('../assets/icons/flags/zh.png'),
+    'ja': require('../assets/icons/flags/ja.png'),
+    'ko': require('../assets/icons/flags/ko.png'),
+    'de': require('../assets/icons/flags/de.png'),
+    'fr': require('../assets/icons/flags/fr.png'),
+    'es': require('../assets/icons/flags/es.png'),
+    'pt-BR': require('../assets/icons/flags/pt-BR.png'),
+    'ar': require('../assets/icons/flags/ar.png'),
+    'ru': require('../assets/icons/flags/ru.png'),
+    'it': require('../assets/icons/flags/it.png'),
+    'nl': require('../assets/icons/flags/nl.png'),
+    'tr': require('../assets/icons/flags/tr.png'),
+    'th': require('../assets/icons/flags/th.png'),
+    'vi': require('../assets/icons/flags/vi.png'),
+    'id': require('../assets/icons/flags/id.png'),
+    'pl': require('../assets/icons/flags/pl.png'),
+    'uk': require('../assets/icons/flags/uk.png'),
+    'hi': require('../assets/icons/flags/hi.png'),
+    'he': require('../assets/icons/flags/he.png'),
+    'sv': require('../assets/icons/flags/sv.png'),
+    'no': require('../assets/icons/flags/no.png'),
+    'da': require('../assets/icons/flags/da.png'),
+    'fi': require('../assets/icons/flags/fi.png'),
+    'cs': require('../assets/icons/flags/cs.png'),
+    'hu': require('../assets/icons/flags/hu.png'),
+    'ro': require('../assets/icons/flags/ro.png'),
+    'el': require('../assets/icons/flags/el.png'),
+    'ms': require('../assets/icons/flags/ms.png'),
+    'fil': require('../assets/icons/flags/fil.png'),
+  };
+  return flagMap[languageCode];
+};
+
 const SettingsScreen: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { theme, themeType, setTheme } = useTheme();
   const { settings, updateSettings } = useSettings();
   const { navigateToHome, navigateToNotificationSettings } = useApp();
   const [languageExpanded, setLanguageExpanded] = useState(false);
+  const [languageListHeight, setLanguageListHeight] = useState(0);
+  const accordionHeight = useSharedValue(0);
+  const arrowRotation = useSharedValue(0);
 
   const translateY = useSharedValue(0);
   const screenHeight = Dimensions.get('window').height;
@@ -83,10 +123,69 @@ const SettingsScreen: React.FC = () => {
     updateSettings({ theme: newTheme });
   };
 
+  const toggleLanguageAccordion = () => {
+    const newExpandedState = !languageExpanded;
+    setLanguageExpanded(newExpandedState);
+
+    accordionHeight.value = withTiming(
+      newExpandedState ? languageListHeight : 0,
+      { duration: 250 }
+    );
+
+    arrowRotation.value = withTiming(
+      newExpandedState ? 180 : 0,
+      { duration: 250 }
+    );
+  };
+
+  const onLanguageListLayout = (event: any) => {
+    const { height } = event.nativeEvent.layout;
+    if (height > 0 && languageListHeight !== height) {
+      setLanguageListHeight(height);
+      // If accordion is expanded, update the animated height immediately
+      if (languageExpanded) {
+        accordionHeight.value = height;
+      }
+    }
+  };
+
   const handleLanguageSelect = (langCode: string) => {
     i18n.changeLanguage(langCode);
     setLanguageExpanded(false);
+    // Also close the animation
+    accordionHeight.value = withTiming(0, { duration: 250 });
+    arrowRotation.value = withTiming(0, { duration: 250 });
   };
+
+  const renderLanguageList = () =>
+    LANGUAGES.map(lang => (
+      <Pressable
+        key={lang.code}
+        style={[
+          styles.languageItem,
+          i18n.language === lang.code && styles.languageItemSelected,
+        ]}
+        onPress={() => handleLanguageSelect(lang.code)}
+      >
+        <View style={styles.languageItemContent}>
+          <Image source={getFlagSource(lang.code)} style={styles.flagIcon} />
+          <View style={styles.languageTextContainer}>
+            <Text
+              style={[
+                styles.languageNative,
+                i18n.language === lang.code && styles.languageTextSelected,
+              ]}
+            >
+              {lang.nativeName}
+            </Text>
+            <Text style={styles.languageName}>{lang.name}</Text>
+          </View>
+        </View>
+        {i18n.language === lang.code && (
+          <Text style={styles.checkmark}>✓</Text>
+        )}
+      </Pressable>
+    ));
 
   const toggleSound = () => {
     updateSettings({ soundEnabled: !settings.soundEnabled });
@@ -153,6 +252,24 @@ const SettingsScreen: React.FC = () => {
     };
   });
 
+  const accordionAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      height: accordionHeight.value,
+      opacity: interpolate(
+        accordionHeight.value,
+        [0, languageListHeight * 0.3, languageListHeight],
+        [0, 0.5, 1],
+        'clamp'
+      ),
+    };
+  });
+
+  const arrowAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${arrowRotation.value}deg` }],
+    };
+  });
+
   const themeOptions: ThemeType[] = ['light', 'dark', 'solar', 'mono'];
 
   const styles = createStyles(theme);
@@ -210,51 +327,50 @@ const SettingsScreen: React.FC = () => {
               <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
               <Pressable
                 style={styles.accordionHeader}
-                onPress={() => setLanguageExpanded(!languageExpanded)}
+                onPress={toggleLanguageAccordion}
               >
                 <View style={styles.accordionHeaderContent}>
-                  <Text style={styles.settingLabel}>
-                    {currentLanguage.nativeName}
-                  </Text>
-                  <Text style={styles.accordionSubtext}>
-                    {currentLanguage.name}
-                  </Text>
+                  <View style={styles.accordionHeaderRow}>
+                    <Image
+                      source={getFlagSource(currentLanguage.code)}
+                      style={styles.flagIcon}
+                    />
+                    <View style={styles.accordionHeaderText}>
+                      <Text style={styles.settingLabel}>
+                        {currentLanguage.nativeName}
+                      </Text>
+                      <Text style={styles.accordionSubtext}>
+                        {currentLanguage.name}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text style={styles.accordionArrow}>
-                  {languageExpanded ? '▲' : '▼'}
-                </Text>
+                <Animated.Text style={[styles.accordionArrow, arrowAnimatedStyle]}>
+                  ▼
+                </Animated.Text>
               </Pressable>
 
-              {languageExpanded && (
-                <View style={styles.languageList}>
-                  {LANGUAGES.map(lang => (
-                    <Pressable
-                      key={lang.code}
-                      style={[
-                        styles.languageItem,
-                        i18n.language === lang.code &&
-                          styles.languageItemSelected,
-                      ]}
-                      onPress={() => handleLanguageSelect(lang.code)}
-                    >
-                      <View>
-                        <Text
-                          style={[
-                            styles.languageNative,
-                            i18n.language === lang.code &&
-                              styles.languageTextSelected,
-                          ]}
-                        >
-                          {lang.nativeName}
-                        </Text>
-                        <Text style={styles.languageName}>{lang.name}</Text>
-                      </View>
-                      {i18n.language === lang.code && (
-                        <Text style={styles.checkmark}>✓</Text>
-                      )}
-                    </Pressable>
-                  ))}
+              {languageListHeight === 0 ? (
+                // Measurement phase - render to get height, hide with opacity
+                <View
+                  style={[styles.languageListWrapper, styles.measurementView]}
+                >
+                  <View
+                    style={styles.languageList}
+                    onLayout={onLanguageListLayout}
+                  >
+                    {renderLanguageList()}
+                  </View>
                 </View>
+              ) : (
+                // Animation phase - use animated height
+                <Animated.View
+                  style={[styles.languageListWrapper, accordionAnimatedStyle]}
+                >
+                  <View style={styles.languageList}>
+                    {renderLanguageList()}
+                  </View>
+                </Animated.View>
               )}
             </View>
 
@@ -469,11 +585,43 @@ const createStyles = (theme: any) =>
       color: theme.colors.textSecondary,
       marginLeft: theme.spacing.md,
     },
-    languageList: {
+    accordionHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.sm,
+    },
+    accordionHeaderText: {
+      flex: 1,
+    },
+    languageListWrapper: {
+      overflow: 'hidden',
       marginTop: theme.spacing.sm,
+    },
+    measurementView: {
+      opacity: 0,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+    },
+    languageList: {
       backgroundColor: theme.colors.surface,
       borderRadius: theme.borderRadius.md,
       overflow: 'hidden',
+    },
+    flagIcon: {
+      width: 24,
+      height: 18,
+      borderRadius: 2,
+      resizeMode: 'cover',
+    },
+    languageItemContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.sm,
+      flex: 1,
+    },
+    languageTextContainer: {
+      flex: 1,
     },
     languageItem: {
       flexDirection: 'row',

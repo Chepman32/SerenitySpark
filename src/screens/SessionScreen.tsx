@@ -283,6 +283,10 @@ const SessionScreen: React.FC = () => {
     setShowEarlyExitPrompt(false);
   };
 
+  const triggerWarningHaptic = () => {
+    HapticService.warning();
+  };
+
   const finalizeEndSession = () => {
     const actualDurationSeconds =
       sessionState.duration * 60 - remainingRef.current;
@@ -380,6 +384,8 @@ const SessionScreen: React.FC = () => {
           resetDismissState(event.velocityY);
           runOnJS(handleEarlyExitRequest)();
         } else {
+          // Warning haptic when canceling session in normal mode
+          runOnJS(triggerWarningHaptic)();
           animateSessionDismissal(event.velocityY);
         }
       } else {

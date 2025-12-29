@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../contexts/ThemeContext';
+import HapticService from '../services/HapticService';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -123,6 +124,7 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
   const startAngle = useSharedValue(timeToAngle(startHour, startMinute));
   const endAngle = useSharedValue(timeToAngle(endHour, endMinute));
   const activeHandle = useSharedValue<'start' | 'end' | null>(null);
+  const lastSnappedMinute = useSharedValue(-1);
 
   // State for real-time display updates
   const [displayStartTime, setDisplayStartTime] = useState({
@@ -139,6 +141,19 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
     setDisplayStartTime({ hour: startHour, minute: startMinute });
     setDisplayEndTime({ hour: endHour, minute: endMinute });
   }, [startHour, startMinute, endHour, endMinute]);
+
+  // Haptic feedback wrappers (cannot access HapticService directly in worklet)
+  const triggerLightHaptic = useCallback(() => {
+    HapticService.light();
+  }, []);
+
+  const triggerSelectionHaptic = useCallback(() => {
+    HapticService.selection();
+  }, []);
+
+  const triggerMediumHaptic = useCallback(() => {
+    HapticService.medium();
+  }, []);
 
   const updateTimeFromAngle = useCallback(
     (handle: 'start' | 'end', angle: number, isPM: boolean) => {
@@ -212,6 +227,9 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
           );
 
           activeHandle.value = distToStart < distToEnd ? 'start' : 'end';
+
+          // Light haptic when handle is grabbed
+          runOnJS(triggerLightHaptic)();
         })
         .onUpdate((event) => {
           'worklet';
@@ -220,10 +238,30 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
           if (activeHandle.value === 'start') {
             startAngle.value = angle;
             const isPM = startHour >= 12;
+
+            // Get snapped minute value
+            const time = angleToTime(angle);
+
+            // Trigger haptic when time snaps to new 5-minute increment
+            if (time.minute !== lastSnappedMinute.value) {
+              lastSnappedMinute.value = time.minute;
+              runOnJS(triggerSelectionHaptic)();
+            }
+
             runOnJS(updateDisplayTime)('start', angle, isPM);
           } else if (activeHandle.value === 'end') {
             endAngle.value = angle;
             const isPM = endHour >= 12;
+
+            // Get snapped minute value
+            const time = angleToTime(angle);
+
+            // Trigger haptic when time snaps to new 5-minute increment
+            if (time.minute !== lastSnappedMinute.value) {
+              lastSnappedMinute.value = time.minute;
+              runOnJS(triggerSelectionHaptic)();
+            }
+
             runOnJS(updateDisplayTime)('end', angle, isPM);
           }
         })
@@ -236,7 +274,12 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
             const isPM = endHour >= 12;
             runOnJS(updateTimeFromAngle)('end', endAngle.value, isPM);
           }
+
+          // Medium haptic when releasing handle
+          runOnJS(triggerMediumHaptic)();
+
           activeHandle.value = null;
+          lastSnappedMinute.value = -1; // Reset for next drag
         }),
     [
       getAngleFromPoint,
@@ -244,10 +287,14 @@ const CircularTimeRangePicker: React.FC<CircularTimeRangePickerProps> = ({
       startAngle,
       endAngle,
       activeHandle,
+      lastSnappedMinute,
       updateTimeFromAngle,
       updateDisplayTime,
       startHour,
       endHour,
+      triggerLightHaptic,
+      triggerSelectionHaptic,
+      triggerMediumHaptic,
     ],
   );
 

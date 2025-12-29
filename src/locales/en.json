@@ -30,7 +30,13 @@
     "time": "Time",
     "selectTime": "Select Time",
     "done": "Done",
-    "info": "Reminders will be sent daily at your selected times. Make sure notifications are enabled in your device settings."
+    "info": "Reminders will be sent daily at your selected times. Make sure notifications are enabled in your device settings.",
+    "reminderPeriods": "Reminder Periods",
+    "noPeriods": "No reminder periods set. Tap + to add one.",
+    "tapToEdit": "Tap to edit",
+    "editPeriod": "Edit Period",
+    "addPeriod": "Add Period",
+    "dragHint": "Drag the handles to set your notification window"
   },
   "notifications": {
     "morningTitle": "Good morning! ☀️",

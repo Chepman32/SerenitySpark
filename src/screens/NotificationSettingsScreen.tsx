@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   Pressable,
   Dimensions,
   Switch,
-  Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -21,13 +21,13 @@ import Animated, {
   interpolate,
   runOnJS,
 } from 'react-native-reanimated';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { useApp } from '../contexts/AppContext';
 import NotificationService from '../services/NotificationService';
-import { ReminderTime } from '../types';
+import CircularTimeRangePicker from '../components/CircularTimeRangePicker';
+import { NotificationPeriod } from '../types';
 
 const NotificationSettingsScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -40,57 +40,43 @@ const NotificationSettingsScreen: React.FC = () => {
   const panRef = React.useRef<any>(null);
   const scrollY = useSharedValue(0);
 
-  const [showTimePicker, setShowTimePicker] = useState<
-    'morning' | 'day' | 'evening' | null
-  >(null);
+  const [showTimePickerModal, setShowTimePickerModal] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState<NotificationPeriod | null>(
+    null,
+  );
+  const [tempPeriod, setTempPeriod] = useState<{
+    startHour: number;
+    startMinute: number;
+    endHour: number;
+    endMinute: number;
+  }>({
+    startHour: 9,
+    startMinute: 0,
+    endHour: 21,
+    endMinute: 0,
+  });
 
-  // Ensure settings have default values
-  const notificationPeriods = settings.notificationPeriods || {
-    morning: true,
-    day: true,
-    evening: true,
-  };
+  const notificationPeriods = settings.customNotificationPeriods || [];
 
-  const reminderTimes = settings.reminderTimes || {
-    morning: { hour: 8, minute: 0 },
-    day: { hour: 13, minute: 0 },
-    evening: { hour: 20, minute: 0 },
-  };
-
-  // Schedule notifications when settings change
   useEffect(() => {
-    if (settings.notificationsEnabled) {
+    if (settings.notificationsEnabled && notificationPeriods.length > 0) {
       scheduleReminders();
     } else {
       NotificationService.cancelAllScheduledReminders();
     }
-  }, [
-    settings.notificationsEnabled,
-    settings.notificationPeriods,
-    settings.reminderTimes,
-  ]);
+  }, [settings.notificationsEnabled, settings.customNotificationPeriods]);
 
   const scheduleReminders = async () => {
-    const messages = {
-      morning: {
-        title: t('notifications.morningTitle'),
-        body: t('notifications.morningBody'),
-      },
-      day: {
-        title: t('notifications.dayTitle'),
-        body: t('notifications.dayBody'),
-      },
-      evening: {
-        title: t('notifications.eveningTitle'),
-        body: t('notifications.eveningBody'),
-      },
-    };
-
-    await NotificationService.scheduleAllReminders(
-      notificationPeriods,
-      reminderTimes,
-      messages,
-    );
+    await NotificationService.cancelAllScheduledReminders();
+    const enabledPeriods = notificationPeriods.filter((p) => p.enabled);
+    for (const period of enabledPeriods) {
+      await NotificationService.scheduleDailyReminder(
+        period.id,
+        t('notifications.dayTitle'),
+        t('notifications.dayBody'),
+        { hour: period.startHour, minute: period.startMinute },
+      );
+    }
   };
 
   const onScroll = React.useCallback((event: any) => {
@@ -119,59 +105,90 @@ const NotificationSettingsScreen: React.FC = () => {
     }
   };
 
-  const toggleNotificationPeriod = (period: 'morning' | 'day' | 'evening') => {
-    updateSettings({
-      notificationPeriods: {
-        ...notificationPeriods,
-        [period]: !notificationPeriods[period],
-      },
+  const generateId = () => {
+    return `period_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const openAddPeriodModal = () => {
+    setEditingPeriod(null);
+    setTempPeriod({
+      startHour: 9,
+      startMinute: 0,
+      endHour: 21,
+      endMinute: 0,
     });
+    setShowTimePickerModal(true);
   };
 
-  const updateReminderTime = (
-    period: 'morning' | 'day' | 'evening',
-    time: ReminderTime,
-  ) => {
-    updateSettings({
-      reminderTimes: {
-        ...reminderTimes,
-        [period]: time,
-      },
+  const openEditPeriodModal = (period: NotificationPeriod) => {
+    setEditingPeriod(period);
+    setTempPeriod({
+      startHour: period.startHour,
+      startMinute: period.startMinute,
+      endHour: period.endHour,
+      endMinute: period.endMinute,
     });
+    setShowTimePickerModal(true);
   };
 
-  const formatTime = (time: ReminderTime): string => {
-    const hours = time.hour % 12 || 12;
-    const minutes = time.minute.toString().padStart(2, '0');
-    const ampm = time.hour >= 12 ? 'PM' : 'AM';
-    return `${hours}:${minutes} ${ampm}`;
-  };
+  const handleTimeChange = useCallback(
+    (startHour: number, startMinute: number, endHour: number, endMinute: number) => {
+      setTempPeriod({ startHour, startMinute, endHour, endMinute });
+    },
+    [],
+  );
 
-  const handleTimeChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(null);
-    }
-
-    if (selectedDate && showTimePicker) {
-      updateReminderTime(showTimePicker, {
-        hour: selectedDate.getHours(),
-        minute: selectedDate.getMinutes(),
+  const savePeriod = () => {
+    if (editingPeriod) {
+      const updatedPeriods = notificationPeriods.map((p) =>
+        p.id === editingPeriod.id
+          ? { ...p, ...tempPeriod }
+          : p,
+      );
+      updateSettings({ customNotificationPeriods: updatedPeriods });
+    } else {
+      const newPeriod: NotificationPeriod = {
+        id: generateId(),
+        ...tempPeriod,
+        enabled: true,
+      };
+      updateSettings({
+        customNotificationPeriods: [...notificationPeriods, newPeriod],
       });
     }
+    setShowTimePickerModal(false);
   };
 
-  const getDateFromTime = (time: ReminderTime): Date => {
-    const date = new Date();
-    date.setHours(time.hour);
-    date.setMinutes(time.minute);
-    return date;
+  const deletePeriod = (periodId: string) => {
+    const updatedPeriods = notificationPeriods.filter((p) => p.id !== periodId);
+    updateSettings({ customNotificationPeriods: updatedPeriods });
+  };
+
+  const togglePeriod = (periodId: string) => {
+    const updatedPeriods = notificationPeriods.map((p) =>
+      p.id === periodId ? { ...p, enabled: !p.enabled } : p,
+    );
+    updateSettings({ customNotificationPeriods: updatedPeriods });
+  };
+
+  const formatTimeRange = (period: NotificationPeriod): string => {
+    const formatHour = (hour: number, minute: number) => {
+      const h = hour % 12 || 12;
+      const m = minute.toString().padStart(2, '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      return `${h}:${m} ${ampm}`;
+    };
+    return `${formatHour(period.startHour, period.startMinute)} - ${formatHour(
+      period.endHour,
+      period.endMinute,
+    )}`;
   };
 
   const gesture = useMemo(
     () =>
       Gesture.Pan()
         .withRef(panRef)
-        .onUpdate(event => {
+        .onUpdate((event) => {
           'worklet';
           if (event.translationY <= 0) {
             translateY.value = 0;
@@ -183,7 +200,7 @@ const NotificationSettingsScreen: React.FC = () => {
           }
           translateY.value = event.translationY;
         })
-        .onEnd(event => {
+        .onEnd((event) => {
           'worklet';
           const threshold = 80;
           const isScrollingContent = scrollY.value > 0;
@@ -197,7 +214,7 @@ const NotificationSettingsScreen: React.FC = () => {
             translateY.value = withTiming(
               screenHeight,
               { duration: 220 },
-              finished => {
+              (finished) => {
                 if (finished) {
                   runOnJS(navigateToSettings)();
                 }
@@ -268,120 +285,62 @@ const NotificationSettingsScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* Notification Periods List */}
             {settings.notificationsEnabled && (
-              <>
-                {/* Morning Reminder */}
-                <View style={styles.section}>
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>
-                    🌅 {t('notificationSettings.morningReminder')}
+                    {t('notificationSettings.reminderPeriods', 'Reminder Periods')}
                   </Text>
-                  <View style={styles.reminderCard}>
-                    <View style={styles.reminderRow}>
-                      <Text style={styles.settingLabel}>
-                        {t('notificationSettings.enabled')}
-                      </Text>
-                      <Switch
-                        value={notificationPeriods.morning}
-                        onValueChange={() =>
-                          toggleNotificationPeriod('morning')
-                        }
-                        trackColor={{
-                          false: theme.colors.border,
-                          true: theme.colors.primary,
-                        }}
-                        thumbColor={theme.colors.text}
-                      />
-                    </View>
-                    {notificationPeriods.morning && (
-                      <Pressable
-                        style={styles.timeRow}
-                        onPress={() => setShowTimePicker('morning')}
-                      >
-                        <Text style={styles.timeLabel}>
-                          {t('notificationSettings.time')}
-                        </Text>
-                        <Text style={styles.timeValue}>
-                          {formatTime(reminderTimes.morning)}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
+                  <Pressable
+                    style={styles.addButton}
+                    onPress={openAddPeriodModal}
+                  >
+                    <Text style={styles.addButtonText}>+</Text>
+                  </Pressable>
                 </View>
 
-                {/* Day Reminder */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    ☀️ {t('notificationSettings.dayReminder')}
-                  </Text>
-                  <View style={styles.reminderCard}>
-                    <View style={styles.reminderRow}>
-                      <Text style={styles.settingLabel}>
-                        {t('notificationSettings.enabled')}
-                      </Text>
-                      <Switch
-                        value={notificationPeriods.day}
-                        onValueChange={() => toggleNotificationPeriod('day')}
-                        trackColor={{
-                          false: theme.colors.border,
-                          true: theme.colors.primary,
-                        }}
-                        thumbColor={theme.colors.text}
-                      />
-                    </View>
-                    {notificationPeriods.day && (
+                {notificationPeriods.length === 0 ? (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyStateText}>
+                      {t('notificationSettings.noPeriods', 'No reminder periods set. Tap + to add one.')}
+                    </Text>
+                  </View>
+                ) : (
+                  notificationPeriods.map((period) => (
+                    <View key={period.id} style={styles.periodCard}>
                       <Pressable
-                        style={styles.timeRow}
-                        onPress={() => setShowTimePicker('day')}
+                        style={styles.periodInfo}
+                        onPress={() => openEditPeriodModal(period)}
                       >
-                        <Text style={styles.timeLabel}>
-                          {t('notificationSettings.time')}
+                        <Text style={styles.periodTime}>
+                          {formatTimeRange(period)}
                         </Text>
-                        <Text style={styles.timeValue}>
-                          {formatTime(reminderTimes.day)}
+                        <Text style={styles.periodHint}>
+                          {t('notificationSettings.tapToEdit', 'Tap to edit')}
                         </Text>
                       </Pressable>
-                    )}
-                  </View>
-                </View>
-
-                {/* Evening Reminder */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    🌙 {t('notificationSettings.eveningReminder')}
-                  </Text>
-                  <View style={styles.reminderCard}>
-                    <View style={styles.reminderRow}>
-                      <Text style={styles.settingLabel}>
-                        {t('notificationSettings.enabled')}
-                      </Text>
-                      <Switch
-                        value={notificationPeriods.evening}
-                        onValueChange={() =>
-                          toggleNotificationPeriod('evening')
-                        }
-                        trackColor={{
-                          false: theme.colors.border,
-                          true: theme.colors.primary,
-                        }}
-                        thumbColor={theme.colors.text}
-                      />
+                      <View style={styles.periodActions}>
+                        <Switch
+                          value={period.enabled}
+                          onValueChange={() => togglePeriod(period.id)}
+                          trackColor={{
+                            false: theme.colors.border,
+                            true: theme.colors.primary,
+                          }}
+                          thumbColor={theme.colors.text}
+                        />
+                        <Pressable
+                          style={styles.deleteButton}
+                          onPress={() => deletePeriod(period.id)}
+                        >
+                          <Text style={styles.deleteButtonText}>-</Text>
+                        </Pressable>
+                      </View>
                     </View>
-                    {notificationPeriods.evening && (
-                      <Pressable
-                        style={styles.timeRow}
-                        onPress={() => setShowTimePicker('evening')}
-                      >
-                        <Text style={styles.timeLabel}>
-                          {t('notificationSettings.time')}
-                        </Text>
-                        <Text style={styles.timeValue}>
-                          {formatTime(reminderTimes.evening)}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
-                </View>
-              </>
+                  ))
+                )}
+              </View>
             )}
 
             {/* Info Section */}
@@ -393,31 +352,52 @@ const NotificationSettingsScreen: React.FC = () => {
           </GHScrollView>
 
           {/* Time Picker Modal */}
-          {showTimePicker && (
-            <View style={styles.pickerOverlay}>
-              <View style={styles.pickerContainer}>
-                <View style={styles.pickerHeader}>
-                  <Text style={styles.pickerTitle}>
-                    {t('notificationSettings.selectTime')}
-                  </Text>
-                  <Pressable onPress={() => setShowTimePicker(null)}>
-                    <Text style={styles.pickerDone}>
-                      {t('notificationSettings.done')}
+          <Modal
+            visible={showTimePickerModal}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setShowTimePickerModal(false)}
+          >
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setShowTimePickerModal(false)}
+            >
+              <Pressable onPress={() => {}}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Pressable onPress={() => setShowTimePickerModal(false)}>
+                      <Text style={styles.modalCancel}>
+                        {t('common.cancel')}
+                      </Text>
+                    </Pressable>
+                    <Text style={styles.modalTitle}>
+                      {editingPeriod
+                        ? t('notificationSettings.editPeriod', 'Edit Period')
+                        : t('notificationSettings.addPeriod', 'Add Period')}
                     </Text>
-                  </Pressable>
+                    <Pressable onPress={savePeriod}>
+                      <Text style={styles.modalSave}>{t('common.save')}</Text>
+                    </Pressable>
+                  </View>
+
+                  <CircularTimeRangePicker
+                    startHour={tempPeriod.startHour}
+                    startMinute={tempPeriod.startMinute}
+                    endHour={tempPeriod.endHour}
+                    endMinute={tempPeriod.endMinute}
+                    onTimeChange={handleTimeChange}
+                  />
+
+                  <Text style={styles.modalHint}>
+                    {t(
+                      'notificationSettings.dragHint',
+                      'Drag the handles to set your notification window',
+                    )}
+                  </Text>
                 </View>
-                <DateTimePicker
-                  value={getDateFromTime(reminderTimes[showTimePicker])}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleTimeChange}
-                  themeVariant={
-                    theme.colors.background === '#0D0D0D' ? 'dark' : 'light'
-                  }
-                />
-              </View>
-            </View>
-          )}
+              </Pressable>
+            </Pressable>
+          </Modal>
         </SafeAreaView>
       </Animated.View>
     </GestureDetector>
@@ -457,11 +437,30 @@ const createStyles = (theme: any) =>
     section: {
       marginBottom: theme.spacing.xl,
     },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: theme.spacing.md,
+    },
     sectionTitle: {
       fontSize: 16,
       fontWeight: '600',
       color: theme.colors.text,
-      marginBottom: theme.spacing.md,
+    },
+    addButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    addButtonText: {
+      fontSize: 24,
+      fontWeight: '400',
+      color: theme.colors.background,
+      lineHeight: 28,
     },
     settingRow: {
       flexDirection: 'row',
@@ -484,33 +483,57 @@ const createStyles = (theme: any) =>
       color: theme.colors.textSecondary,
       marginTop: 4,
     },
-    reminderCard: {
+    emptyState: {
+      padding: theme.spacing.xl,
       backgroundColor: theme.colors.surface,
       borderRadius: theme.borderRadius.md,
-      overflow: 'hidden',
+      alignItems: 'center',
     },
-    reminderRow: {
+    emptyStateText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+    },
+    periodCard: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+      marginBottom: theme.spacing.sm,
     },
-    timeRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
+    periodInfo: {
+      flex: 1,
     },
-    timeLabel: {
-      fontSize: 16,
+    periodTime: {
+      fontSize: 18,
+      fontWeight: '600',
       color: theme.colors.text,
     },
-    timeValue: {
-      fontSize: 16,
-      color: theme.colors.primary,
+    periodHint: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginTop: 2,
+    },
+    periodActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    deleteButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: theme.colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    deleteButtonText: {
+      fontSize: 20,
       fontWeight: '600',
+      color: theme.colors.background,
+      lineHeight: 22,
     },
     infoSection: {
       padding: theme.spacing.md,
@@ -523,22 +546,18 @@ const createStyles = (theme: any) =>
       color: theme.colors.textSecondary,
       lineHeight: 20,
     },
-    pickerOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+    modalOverlay: {
+      flex: 1,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       justifyContent: 'flex-end',
     },
-    pickerContainer: {
-      backgroundColor: theme.colors.surface,
+    modalContent: {
+      backgroundColor: theme.colors.background,
       borderTopLeftRadius: theme.borderRadius.lg,
       borderTopRightRadius: theme.borderRadius.lg,
-      paddingBottom: theme.spacing.xl,
+      paddingBottom: theme.spacing.xxl,
     },
-    pickerHeader: {
+    modalHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -546,15 +565,26 @@ const createStyles = (theme: any) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
-    pickerTitle: {
+    modalTitle: {
       fontSize: 18,
       fontWeight: '600',
       color: theme.colors.text,
     },
-    pickerDone: {
+    modalCancel: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+    },
+    modalSave: {
       fontSize: 16,
       color: theme.colors.primary,
       fontWeight: '600',
+    },
+    modalHint: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      paddingHorizontal: theme.spacing.lg,
+      marginTop: theme.spacing.md,
     },
   });
 

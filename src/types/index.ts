@@ -17,6 +17,15 @@ export interface ReminderTime {
   minute: number;
 }
 
+export interface NotificationPeriod {
+  id: string;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  enabled: boolean;
+}
+
 export interface UserSettings {
   defaultNatureTrack: string;
   defaultMusicTrack: string;
@@ -42,6 +51,7 @@ export interface UserSettings {
     day: ReminderTime;
     evening: ReminderTime;
   };
+  customNotificationPeriods: NotificationPeriod[];
   hasAskedNotificationPermission: boolean;
 }
 

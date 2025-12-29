@@ -37,6 +37,7 @@ const DEFAULT_SETTINGS: UserSettings = {
     day: { hour: 13, minute: 0 },
     evening: { hour: 20, minute: 0 },
   },
+  customNotificationPeriods: [],
   hasAskedNotificationPermission: false,
 };
 

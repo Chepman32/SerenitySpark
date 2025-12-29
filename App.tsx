@@ -33,15 +33,29 @@ const AppNavigator: React.FC = () => {
       setPreviousScreen(currentScreen);
     }
 
-    // Skip fade animation when coming from Session to Home (session has its own animation)
+    // Don't animate when coming from Session - HomeScreen was already visible underneath
     if (currentScreen === 'Home' && previousScreen === 'Session') {
       opacity.value = 1;
       return;
     }
 
-    // Fade in on screen change
+    // Skip fade-in for swipe-navigated screens to avoid white blink
+    // These screens already have smooth exit animations via gestures
+    const swipeNavigatedScreens = ['Home', 'Settings', 'Statistics'];
+    const isSwipeTransition =
+      swipeNavigatedScreens.includes(currentScreen) &&
+      previousScreen &&
+      swipeNavigatedScreens.includes(previousScreen);
+
+    if (isSwipeTransition) {
+      opacity.value = 1;
+      return;
+    }
+
+    // Fade in on screen change (only for non-swipe transitions like Splash -> Home)
     opacity.value = 0;
     opacity.value = withTiming(1, { duration: 200 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentScreen]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -53,17 +67,19 @@ const AppNavigator: React.FC = () => {
       case 'Splash':
         return <SplashScreen />;
       case 'Home':
-        return <HomeScreen />;
       case 'Session':
-        // Render HomeScreen underneath SessionScreen for smooth dismissal
+        // Always render with same structure to prevent unmount/remount blink
+        // HomeScreen stays mounted, SessionScreen conditionally renders on top
         return (
           <>
             <View style={StyleSheet.absoluteFill}>
               <HomeScreen />
             </View>
-            <View style={StyleSheet.absoluteFill}>
-              <SessionScreen />
-            </View>
+            {currentScreen === 'Session' && (
+              <View style={StyleSheet.absoluteFill}>
+                <SessionScreen />
+              </View>
+            )}
           </>
         );
       case 'History':

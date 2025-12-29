@@ -19,7 +19,10 @@ import Animated, {
   runOnJS,
   interpolate,
   interpolateColor,
+  Extrapolation,
+  SharedValue,
 } from 'react-native-reanimated';
+import { BlurView } from '@react-native-community/blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import ProgressRing from '../components/ProgressRing';
@@ -37,8 +40,64 @@ import { useHistory } from '../contexts/HistoryContext';
 import { useSettings } from '../contexts/SettingsContext';
 import AudioService from '../services/AudioService';
 import NotificationService from '../services/NotificationService';
+import HapticService from '../services/HapticService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const EdgeBlur: React.FC<{
+  dismissProgress: SharedValue<number>;
+}> = ({ dismissProgress }) => {
+  const topBlurStyle = useAnimatedStyle(() => {
+    const p = dismissProgress.value;
+
+    return {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 100,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      opacity: interpolate(p, [0, 0.3, 0.7], [0, 0.15, 0.35], Extrapolation.CLAMP),
+    };
+  });
+
+  const bottomBlurStyle = useAnimatedStyle(() => {
+    const p = dismissProgress.value;
+
+    return {
+      position: 'absolute' as const,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 100,
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+      opacity: interpolate(p, [0, 0.3, 0.7], [0, 0.15, 0.35], Extrapolation.CLAMP),
+    };
+  });
+
+  return (
+    <>
+      <Animated.View style={topBlurStyle} pointerEvents="none">
+        <BlurView
+          blurAmount={20}
+          blurType="dark"
+          style={StyleSheet.absoluteFill}
+          reducedTransparencyFallbackColor="rgba(8, 8, 12, 0.2)"
+        />
+      </Animated.View>
+      <Animated.View style={bottomBlurStyle} pointerEvents="none">
+        <BlurView
+          blurAmount={20}
+          blurType="dark"
+          style={StyleSheet.absoluteFill}
+          reducedTransparencyFallbackColor="rgba(8, 8, 12, 0.2)"
+        />
+      </Animated.View>
+    </>
+  );
+};
 
 const SessionScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -207,17 +266,20 @@ const SessionScreen: React.FC = () => {
   };
 
   const handleEarlyExitRequest = () => {
+    HapticService.warning();
     setPendingReason('lostFocus');
     setShowEarlyExitPrompt(true);
   };
 
   const confirmEarlyExit = (reason: string) => {
+    HapticService.heavy();
     setPendingReason(reason);
     setShowEarlyExitPrompt(false);
     animateSessionDismissal(0);
   };
 
   const cancelEarlyExit = () => {
+    HapticService.light();
     setShowEarlyExitPrompt(false);
   };
 
@@ -258,14 +320,14 @@ const SessionScreen: React.FC = () => {
     runOnJS(setIsExiting)(true);
 
     translateY.value = withTiming(SCREEN_HEIGHT * 1.1, {
-      duration: 450,
+      duration: 550,
       easing: Easing.in(Easing.cubic),
     });
 
     dismissProgress.value = withTiming(
       1,
       {
-        duration: 450,
+        duration: 550,
         easing: Easing.out(Easing.cubic),
       },
       finished => {
@@ -417,7 +479,7 @@ const SessionScreen: React.FC = () => {
           />
           <Animated.View style={[styles.cardWrapper, animatedStyle]}>
             <Animated.View style={glowBorderStyle} pointerEvents="none" />
-            <View style={styles.edgeSoftener} pointerEvents="none" />
+            <EdgeBlur dismissProgress={dismissProgress} />
             <View style={styles.container}>
               <SafeAreaView style={styles.safeArea}>
                 <Pressable
@@ -473,11 +535,6 @@ const createStyles = (theme: any) =>
       shadowOffset: { width: 0, height: 14 },
       elevation: 18,
       overflow: 'visible',
-    },
-    edgeSoftener: {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 24,
-      backgroundColor: 'rgba(8, 8, 12, 0.08)',
     },
     container: {
       flex: 1,

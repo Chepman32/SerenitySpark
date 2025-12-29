@@ -652,9 +652,9 @@ export const SessionEndAnimation: React.FC<SessionEndAnimationProps> = ({
     let opacity: number;
     if (p <= 0.01) {
       opacity = 0;
-    } else if (p >= 0.85) {
+    } else if (p >= 0.7) {
       // Fade out smoothly at the end
-      opacity = interpolate(p, [0.85, 1], [1, 0], Extrapolation.CLAMP);
+      opacity = interpolate(p, [0.7, 1], [1, 0], Extrapolation.CLAMP);
     } else {
       opacity = 1;
     }

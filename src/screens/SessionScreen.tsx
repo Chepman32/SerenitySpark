@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from '@react-native-community/blur';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,12 +19,16 @@ import Animated, {
   runOnJS,
   interpolate,
   interpolateColor,
-  SharedValue,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import ProgressRing from '../components/ProgressRing';
 import CompletionAnimation from '../animations/CompletionAnimation';
+import {
+  SessionEndAnimation,
+  useCardDismissStyle,
+  useGlowBorderStyle,
+} from '../animations/SessionEndAnimation';
 import { useTheme } from '../contexts/ThemeContext';
 import { ANIMATION_CONFIG } from '../constants/animations';
 import { useApp } from '../contexts/AppContext';
@@ -35,179 +38,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import AudioService from '../services/AudioService';
 import NotificationService from '../services/NotificationService';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-const PARTICLE_COUNT = 24;
-const GLOW_PARTICLE_COUNT = 8;
-
-interface DismissParticle {
-  id: number;
-  startX: number;
-  startY: number;
-  angle: number;
-  speed: number;
-  size: number;
-  delay: number;
-  color: string;
-}
-
-const generateDismissParticles = (): DismissParticle[] => {
-  const particles: DismissParticle[] = [];
-  const colors = ['#4ECDC4', '#FF6B6B', '#FFE66D', '#95E1D3', '#F38181'];
-
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const angle = (i / PARTICLE_COUNT) * Math.PI * 2 + Math.random() * 0.5;
-    particles.push({
-      id: i,
-      startX: SCREEN_WIDTH / 2,
-      startY: SCREEN_HEIGHT / 2,
-      angle,
-      speed: 150 + Math.random() * 200,
-      size: 4 + Math.random() * 8,
-      delay: Math.random() * 100,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
-  }
-  return particles;
-};
-
-const GlowParticle: React.FC<{
-  index: number;
-  dismissProgress: SharedValue<number>;
-  total: number;
-}> = ({ index, dismissProgress, total }) => {
-  const angle = (index / total) * Math.PI * 2;
-  const radius = 120;
-
-  const style = useAnimatedStyle(() => {
-    const progress = dismissProgress.value;
-    const expandedRadius = radius + progress * 80;
-    const x = SCREEN_WIDTH / 2 + Math.cos(angle) * expandedRadius - 6;
-    const y = SCREEN_HEIGHT / 2 + Math.sin(angle) * expandedRadius - 6;
-
-    return {
-      position: 'absolute',
-      left: x,
-      top: y,
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: '#4ECDC4',
-      opacity: interpolate(progress, [0, 0.3, 0.7, 1], [0, 0.8, 0.6, 0]),
-      transform: [
-        { scale: interpolate(progress, [0, 0.5, 1], [0.5, 1.5, 0.3]) },
-      ],
-      shadowColor: '#4ECDC4',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.8,
-      shadowRadius: 8,
-    };
-  });
-
-  return <Animated.View style={style} />;
-};
-
-const BurstParticle: React.FC<{
-  particle: DismissParticle;
-  dismissProgress: SharedValue<number>;
-}> = ({ particle, dismissProgress }) => {
-  const style = useAnimatedStyle(() => {
-    const progress = dismissProgress.value;
-    const distance = particle.speed * progress;
-    const x = particle.startX + Math.cos(particle.angle) * distance;
-    const y =
-      particle.startY +
-      Math.sin(particle.angle) * distance +
-      progress * progress * 100;
-
-    return {
-      position: 'absolute',
-      left: x - particle.size / 2,
-      top: y - particle.size / 2,
-      width: particle.size,
-      height: particle.size,
-      borderRadius: particle.size / 2,
-      backgroundColor: particle.color,
-      opacity: interpolate(progress, [0, 0.2, 0.8, 1], [0, 1, 0.6, 0]),
-      transform: [
-        { scale: interpolate(progress, [0, 0.3, 1], [0, 1.2, 0.2]) },
-        { rotate: `${progress * 360}deg` },
-      ],
-      shadowColor: particle.color,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.6,
-      shadowRadius: 4,
-    };
-  });
-
-  return <Animated.View style={style} />;
-};
-
-const CinematicVignette: React.FC<{
-  dismissProgress: SharedValue<number>;
-}> = ({ dismissProgress }) => {
-  const style = useAnimatedStyle(() => {
-    const progress = dismissProgress.value;
-    return {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'transparent',
-      borderWidth: interpolate(progress, [0, 0.5, 0.85, 1], [0, 60, 80, 0]),
-      borderColor: 'rgba(0, 0, 0, 0.9)',
-      borderRadius: interpolate(progress, [0, 0.85, 1], [0, 180, 0]),
-      opacity: interpolate(progress, [0, 0.3, 0.8, 1], [0, 1, 0.8, 0]),
-    };
-  });
-
-  return <Animated.View style={style} pointerEvents="none" />;
-};
-
-const RadialGlow: React.FC<{
-  dismissProgress: SharedValue<number>;
-}> = ({ dismissProgress }) => {
-  const style = useAnimatedStyle(() => {
-    const progress = dismissProgress.value;
-    const size = interpolate(progress, [0, 0.5, 1], [100, 300, 50]);
-
-    return {
-      position: 'absolute',
-      left: SCREEN_WIDTH / 2 - size / 2,
-      top: SCREEN_HEIGHT / 2 - size / 2,
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      backgroundColor: '#4ECDC4',
-      opacity: interpolate(progress, [0, 0.3, 0.6, 1], [0, 0.4, 0.2, 0]),
-      shadowColor: '#4ECDC4',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 1,
-      shadowRadius: 60,
-    };
-  });
-
-  return <Animated.View style={style} pointerEvents="none" />;
-};
-
-const BlurredBackground: React.FC<{
-  dismissProgress: SharedValue<number>;
-}> = ({ dismissProgress }) => {
-  const blurStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(dismissProgress.value, [0, 0.1, 0.8, 1], [0, 1, 1, 0]),
-  }));
-
-  return (
-    <Animated.View
-      style={[StyleSheet.absoluteFill, blurStyle]}
-      pointerEvents="none"
-    >
-      <BlurView
-        blurAmount={40}
-        blurType="dark"
-        style={StyleSheet.absoluteFill}
-        reducedTransparencyFallbackColor="rgba(0,0,0,0.9)"
-      />
-    </Animated.View>
-  );
-};
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const SessionScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -216,8 +47,6 @@ const SessionScreen: React.FC = () => {
   const { sessionState, endSession } = useSession();
   const { addSession } = useHistory();
   const { settings } = useSettings();
-
-  const dismissParticles = useMemo(() => generateDismissParticles(), []);
 
   const [timeRemaining, setTimeRemaining] = useState(
     sessionState.duration * 60,
@@ -496,65 +325,9 @@ const SessionScreen: React.FC = () => {
       }
     });
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const prog = dismissProgress.value;
-
-    return {
-      transform: [
-        { translateY: translateY.value },
-        { perspective: 1200 },
-        {
-          scale: interpolate(prog, [0, 0.3, 0.7, 1], [1, 0.85, 0.55, 0.3]),
-        },
-        { rotateX: `${interpolate(prog, [0, 0.5, 1], [0, -35, -55])}deg` },
-        { rotateY: `${interpolate(prog, [0, 0.5, 1], [0, 8, 15])}deg` },
-        { rotateZ: `${interpolate(prog, [0, 0.4, 1], [0, -5, -12])}deg` },
-      ],
-      opacity: interpolate(prog, [0, 0.5, 0.8, 1], [1, 0.9, 0.5, 0]),
-      shadowColor: '#4ECDC4',
-      shadowOffset: {
-        width: 0,
-        height: interpolate(prog, [0, 0.5, 1], [14, 30, 0]),
-      },
-      shadowOpacity: interpolate(prog, [0, 0.3, 0.7, 1], [0.35, 0.8, 0.6, 0]),
-      shadowRadius: interpolate(prog, [0, 0.5, 1], [28, 60, 20]),
-    };
-  });
-
-  const overlayStyle = useAnimatedStyle(() => {
-    const prog = dismissProgress.value;
-    return {
-      backgroundColor: interpolateColor(
-        prog,
-        [0, 0.3, 0.6, 0.9, 1],
-        [
-          'rgba(0,0,0,0)',
-          'rgba(0,0,0,0.6)',
-          'rgba(5,5,8,0.7)',
-          'rgba(5,5,8,0.3)',
-          'rgba(0,0,0,0)',
-        ],
-      ),
-    };
-  });
-
-  const glowBorderStyle = useAnimatedStyle(() => {
-    const prog = dismissProgress.value;
-    return {
-      ...StyleSheet.absoluteFillObject,
-      borderRadius: 24,
-      borderWidth: interpolate(prog, [0, 0.3, 0.7, 1], [0, 2, 3, 0]),
-      borderColor: interpolateColor(
-        prog,
-        [0, 0.3, 0.7, 1],
-        ['transparent', '#4ECDC4', '#FF6B6B', 'transparent'],
-      ),
-      shadowColor: '#4ECDC4',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: interpolate(prog, [0, 0.3, 0.7, 1], [0, 0.8, 0.5, 0]),
-      shadowRadius: interpolate(prog, [0, 0.5, 1], [0, 20, 0]),
-    };
-  });
+  // Use PlayStation-style card animation from SessionEndAnimation
+  const animatedStyle = useCardDismissStyle(dismissProgress, translateY);
+  const glowBorderStyle = useGlowBorderStyle(dismissProgress);
 
   const hintStyle = useAnimatedStyle(() => {
     const prog = dismissProgress.value;
@@ -637,30 +410,11 @@ const SessionScreen: React.FC = () => {
       {earlyExitPrompt}
       <GestureDetector gesture={panGesture}>
         <View style={styles.root}>
-          <BlurredBackground dismissProgress={dismissProgress} />
-          <Animated.View
-            style={[styles.overlay, overlayStyle]}
-            pointerEvents="none"
+          {/* PlayStation-style session end animation */}
+          <SessionEndAnimation
+            dismissProgress={dismissProgress}
+            isExiting={isExiting}
           />
-          <RadialGlow dismissProgress={dismissProgress} />
-          {isExiting &&
-            Array.from({ length: GLOW_PARTICLE_COUNT }).map((_, i) => (
-              <GlowParticle
-                key={`glow-${i}`}
-                index={i}
-                dismissProgress={dismissProgress}
-                total={GLOW_PARTICLE_COUNT}
-              />
-            ))}
-          {isExiting &&
-            dismissParticles.map(particle => (
-              <BurstParticle
-                key={particle.id}
-                particle={particle}
-                dismissProgress={dismissProgress}
-              />
-            ))}
-          <CinematicVignette dismissProgress={dismissProgress} />
           <Animated.View style={[styles.cardWrapper, animatedStyle]}>
             <Animated.View style={glowBorderStyle} pointerEvents="none" />
             <View style={styles.edgeSoftener} pointerEvents="none" />
@@ -730,9 +484,6 @@ const createStyles = (theme: any) =>
       borderRadius: 24,
       overflow: 'hidden',
       backgroundColor: theme.colors.background,
-    },
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
     },
     safeArea: {
       flex: 1,

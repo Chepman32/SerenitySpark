@@ -33,11 +33,15 @@ const AppNavigator: React.FC = () => {
       setPreviousScreen(currentScreen);
     }
 
-    // Fade in on screen change (except when leaving Session - that has its own animation)
-    if (currentScreen !== 'Home' || previousScreen !== 'Session') {
-      opacity.value = 0;
-      opacity.value = withTiming(1, { duration: 200 });
+    // Skip fade animation when coming from Session to Home (session has its own animation)
+    if (currentScreen === 'Home' && previousScreen === 'Session') {
+      opacity.value = 1;
+      return;
     }
+
+    // Fade in on screen change
+    opacity.value = 0;
+    opacity.value = withTiming(1, { duration: 200 });
   }, [currentScreen]);
 
   const animatedStyle = useAnimatedStyle(() => ({

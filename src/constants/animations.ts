@@ -37,6 +37,33 @@ export const ANIMATION_CONFIG = {
       intensityAndroid: 12,
     },
   },
+  // PlayStation-style session end animation config
+  playstation: {
+    // Particle configuration
+    particleCount: 16,
+    particleSizes: { min: 8, max: 24 },
+    particleOrbitRadius: { min: 100, max: 220 },
+    // Ribbon configuration
+    ribbonCount: 3,
+    ribbonWidth: { min: 3, max: 4 },
+    // Central orb
+    orbSizeStart: 80,
+    orbSizeMax: 420,
+    // Animation phases (progress values 0-1)
+    phases: {
+      float: { start: 0, end: 0.3 },
+      converge: { start: 0.3, end: 0.6 },
+      burst: { start: 0.6, end: 1.0 },
+    },
+    // Colors
+    colors: {
+      cyan: '#4ECDC4',
+      blue: '#60A5FA',
+      purple: '#8B5CF6',
+      white: '#E0E7FF',
+      deepBlue: '#0A0A1F',
+    },
+  },
   completion: {
     particleCount: 12,
     animationDuration: 2000,

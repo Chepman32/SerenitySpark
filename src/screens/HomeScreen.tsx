@@ -77,7 +77,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const HomeScreen: React.FC = () => {
   const { t } = useTranslation();
-  const { theme } = useTheme();
+  const { theme, themeType } = useTheme();
   const { navigateToSession, navigateToSettings, navigateToStatistics } =
     useApp();
   const { startSession } = useSession();
@@ -286,7 +286,7 @@ const HomeScreen: React.FC = () => {
     NotificationService.openSettings().catch(() => null);
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, themeType);
 
   const permissionModal = (
     <Modal
@@ -427,8 +427,23 @@ const HomeScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: any) =>
-  StyleSheet.create({
+const createStyles = (theme: any, themeType: string) => {
+  // White for dark & mono themes, dark grey for light & solar themes
+  const adviceTitleColor =
+    themeType === 'dark' || themeType === 'mono' ? '#FFFFFF' : '#4A4A4A';
+
+  // Dirty white for light & solar themes, dark for dark & mono themes
+  const adviceCardBackground =
+    themeType === 'light' || themeType === 'solar'
+      ? 'rgba(245, 245, 240, 0.95)'
+      : 'rgba(17, 24, 36, 0.9)';
+
+  const adviceCardBorder =
+    themeType === 'light' || themeType === 'solar'
+      ? 'rgba(0, 0, 0, 0.1)'
+      : 'rgba(78, 205, 196, 0.35)';
+
+  return StyleSheet.create({
     background: {
       flex: 1,
       backgroundColor: theme.colors.background,
@@ -451,12 +466,12 @@ const createStyles = (theme: any) =>
       paddingVertical: theme.spacing.xl,
     },
     adviceCard: {
-      backgroundColor: 'rgba(17, 24, 36, 0.9)',
+      backgroundColor: adviceCardBackground,
       borderRadius: theme.borderRadius.md,
       padding: theme.spacing.lg,
       gap: theme.spacing.sm,
       borderWidth: 1,
-      borderColor: 'rgba(78, 205, 196, 0.35)',
+      borderColor: adviceCardBorder,
       marginHorizontal: theme.spacing.md,
     },
     adviceHeader: {
@@ -474,7 +489,7 @@ const createStyles = (theme: any) =>
       fontSize: 12,
     },
     adviceTitle: {
-      color: theme.colors.primary,
+      color: adviceTitleColor,
       fontSize: 20,
       fontWeight: '700',
     },
@@ -555,5 +570,6 @@ const createStyles = (theme: any) =>
       fontSize: 16,
     },
   });
+};
 
 export default HomeScreen;

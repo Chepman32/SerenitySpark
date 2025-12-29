@@ -32,6 +32,7 @@ export interface UserSettings {
     day: boolean;
     evening: boolean;
   };
+  hasAskedNotificationPermission: boolean;
 }
 
 export interface AudioTrack {

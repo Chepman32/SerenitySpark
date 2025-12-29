@@ -42,6 +42,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
       day: true,
       evening: true,
     },
+    hasAskedNotificationPermission: false,
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
